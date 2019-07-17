@@ -3,8 +3,6 @@ package com.progmatic.recordislandbackend.domain;
 import com.progmatic.recordislandbackend.domain.Recommendation;
 import com.progmatic.recordislandbackend.domain.Authority;
 import com.progmatic.recordislandbackend.domain.AlbumRating;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -14,11 +12,21 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedEntityGraphs;
 import javax.persistence.OneToMany;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
+@NamedEntityGraphs({
+    @NamedEntityGraph(
+            name = "userWithAuthorities",
+            attributeNodes = {
+                @NamedAttributeNode(value = "authorities")
+            })
+})
 public class User implements UserDetails {
 
     @Id
