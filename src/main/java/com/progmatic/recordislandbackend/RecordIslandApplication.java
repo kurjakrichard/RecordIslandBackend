@@ -14,7 +14,7 @@ import org.springframework.context.annotation.ComponentScan;
  * @author balza
  */
 @SpringBootApplication
-@ComponentScan("com.progmatic.recordislandapplication")
+@ComponentScan("com.progmatic.recordislandbackend")
 public class RecordIslandApplication {
  
         public static void main(String[] args) {
