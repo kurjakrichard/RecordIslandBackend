@@ -3,16 +3,22 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.progmatic.rekordislandbackend;
+package com.progmatic.recordislandbackend;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  *
  * @author balza
  */
-public class RecordIslandMain {
+@SpringBootApplication
+@ComponentScan("com.progmatic.recordislandapplication")
+public class RecordIslandApplication {
  
         public static void main(String[] args) {
-            
+            SpringApplication.run(RecordIslandApplication.class, args);
         }
     
 }
