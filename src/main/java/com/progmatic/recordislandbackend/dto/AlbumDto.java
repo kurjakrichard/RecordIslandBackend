@@ -8,41 +8,35 @@ import java.time.LocalDate;
  */
 public class AlbumDto {
     String title;
-    ArtistDto artist;
-    LocalDate releaseDate;
+    int year;
 
     public AlbumDto() {
     }
-    
-    public AlbumDto(String title, ArtistDto artist, LocalDate releaseDate) {
+
+    public AlbumDto(String title, int year) {
         this.title = title;
-        this.artist = artist;
-        this.releaseDate = releaseDate;
+        this.year = year;
     }
+    
+    
 
     public String getTitle() {
         return title;
     }
 
-    public ArtistDto getArtist() {
-        return artist;
+    public int getYear() {
+        return year;
     }
-
-    public LocalDate getReleaseDate() {
-        return releaseDate;
-    }
-
+    
     public void setTitle(String title) {
         this.title = title;
     }
 
-    public void setArtist(ArtistDto artist) {
-        this.artist = artist;
+    public void setYear(int year) {
+        this.year = year;
     }
 
-    public void setReleaseDate(LocalDate releaseDate) {
-        this.releaseDate = releaseDate;
-    }
+    
     
     
     
