@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 public class RecordIslandProperties {
     
     private String lastFmApiKey = "";
+    private String discogsApiKey = "";
+    
 
     public RecordIslandProperties() {
     }
@@ -16,8 +18,16 @@ public class RecordIslandProperties {
         return lastFmApiKey;
     }
 
+    public String getDiscogsApiKey() {
+        return discogsApiKey;
+    }
+    
     public void setLastFmApiKey(String lastFmApiKey) {
         this.lastFmApiKey = lastFmApiKey;
+    }
+
+    public void setDiscogsApiKey(String discogsApiKey) {
+        this.discogsApiKey = discogsApiKey;
     }
     
 }
