@@ -1,15 +1,14 @@
 package com.progmatic.recordislandbackend.domain;
 
-import com.progmatic.recordislandbackend.domain.Album;
+import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 
 @Entity
-public class AlbumRating {
+public class AlbumRating implements Serializable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

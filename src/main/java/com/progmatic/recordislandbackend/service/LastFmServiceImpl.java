@@ -1,15 +1,23 @@
 package com.progmatic.recordislandbackend.service;
 
 import com.progmatic.recordislandbackend.config.RecordIslandProperties;
+import com.progmatic.recordislandbackend.domain.Artist;
+import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.dto.SimilarArtistsWrapperDTO;
 import com.progmatic.recordislandbackend.dto.TagsWrapperDTO;
+import com.progmatic.recordislandbackend.dto.TopArtistsWrapperDTO;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
@@ -17,43 +25,51 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class LastFmServiceImpl {
-    
-    private RecordIslandProperties properties;
+
+    private final RecordIslandProperties properties;
+
+    @PersistenceContext
+    private EntityManager em;
+
+    private final UserService userService;
 
     @Autowired
-    public LastFmServiceImpl(RecordIslandProperties properties) {
+    public LastFmServiceImpl(RecordIslandProperties properties, UserService userService) {
         this.properties = properties;
+        this.userService = userService;
     }
-    
 
     public List<String> listGenres() {
         RestTemplate rt = new RestTemplate();
 
         HttpHeaders requestHeaders = new HttpHeaders();
 
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .scheme("https").host("ws.audioscrobbler.com")
+                .path("/2.0/").queryParam("method", "chart.gettoptags")
+                .queryParam("api_key", properties.getLastFmApiKey()).queryParam("format", "json").build();
+
         HttpEntity request = new HttpEntity(requestHeaders);
-        ResponseEntity<TagsWrapperDTO> response = rt.exchange("http://ws.audioscrobbler.com/2.0/?method=chart.gettoptags&api_key=b5d3a2c3ed3d171de8652c3aea4e170e&format=json",
+        ResponseEntity<TagsWrapperDTO> response = rt.exchange(uriComponents.toUriString(),
                 HttpMethod.GET,
                 request,
                 TagsWrapperDTO.class);
 
         TagsWrapperDTO tags = response.getBody();
         List<String> genres = tags.getTags().getTag().stream().map(t -> t.getName()).collect(Collectors.toList());
-        
+
         return genres;
     }
-    
-    public List<String> listSimilarArtists(String name){
+
+    public List<String> listSimilarArtists(String name) {
         RestTemplate rt = new RestTemplate();
 
         HttpHeaders requestHeaders = new HttpHeaders();
 
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .scheme("http").host("ws.audioscrobbler.com")
+                .scheme("https").host("ws.audioscrobbler.com")
                 .path("/2.0/").queryParam("method", "artist.getsimilar&artist").queryParam("artist", name)
                 .queryParam("api_key", properties.getLastFmApiKey()).queryParam("format", "json").build();
-        
-        System.out.println(uriComponents.toUriString());
 
         HttpEntity request = new HttpEntity(requestHeaders);
         HttpEntity<SimilarArtistsWrapperDTO> response = rt.exchange(uriComponents.toUriString(),
@@ -64,6 +80,72 @@ public class LastFmServiceImpl {
         SimilarArtistsWrapperDTO simartists = response.getBody();
         List<String> result = simartists.getSimilarArtists().getArtists().stream().map(a -> a.getName()).collect(Collectors.toList());
         return result;
+    }
+
+    public List<String> listTopArtistsByGenre(String genre) {
+        RestTemplate rt = new RestTemplate();
+
+        HttpHeaders requestHeaders = new HttpHeaders();
+
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .scheme("https").host("ws.audioscrobbler.com")
+                .path("/2.0/").queryParam("method", "tag.gettopartists").queryParam("tag", genre)
+                .queryParam("api_key", properties.getLastFmApiKey()).queryParam("format", "json").build();
+
+        System.out.println(uriComponents.toUriString());
+
+        HttpEntity request = new HttpEntity(requestHeaders);
+        HttpEntity<TopArtistsWrapperDTO> response = rt.exchange(uriComponents.toUriString(),
+                HttpMethod.GET,
+                request,
+                TopArtistsWrapperDTO.class);
+
+        TopArtistsWrapperDTO topartists = response.getBody();
+        List<String> result = topartists.getTopartists().getArtist().stream().map(a -> a.getName()).collect(Collectors.toList());
+        return result;
+    }
+
+    public List<String> getLastFmHistory(String username) {
+        RestTemplate rt = new RestTemplate();
+
+        HttpHeaders requestHeaders = new HttpHeaders();
+
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .scheme("https").host("ws.audioscrobbler.com")
+                .path("/2.0/").queryParam("method", "user.gettopartists").queryParam("user", username)
+                .queryParam("api_key", properties.getLastFmApiKey()).queryParam("format", "json").build();
+
+        System.out.println(uriComponents.toUriString());
+
+        HttpEntity request = new HttpEntity(requestHeaders);
+        HttpEntity<TopArtistsWrapperDTO> response = rt.exchange(uriComponents.toUriString(),
+                HttpMethod.GET,
+                request,
+                TopArtistsWrapperDTO.class);
+
+        TopArtistsWrapperDTO topartists = response.getBody();
+        return topartists.getTopartists().getArtist().stream().map(a -> a.getName()).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void saveLastFmHistory(List<String> artists) {
+        artists.stream().forEachOrdered((artistName) -> {
+            Artist artist;
+            try {
+                artist = em.createQuery("SELECT a FROM Artist a WHERE a.name = :artistName", Artist.class).setParameter("artistName", artistName).getSingleResult();
+            } catch (NoResultException ex) {
+                artist = new Artist(artistName);
+                em.persist(artist);
+                String username = SecurityContextHolder.getContext().getAuthentication().getName();
+                User user = (User) userService.loadUserByUsername(username);
+                user.getLikedArtists().add(artist);
+                em.persist(user);
+            }
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            User user = (User) userService.loadUserByUsername(username);
+            user.getLikedArtists().add(artist);
+            em.persist(user);
+        });
     }
 
 }

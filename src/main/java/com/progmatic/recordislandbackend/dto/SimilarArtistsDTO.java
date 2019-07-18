@@ -6,20 +6,20 @@ import java.util.List;
 public class SimilarArtistsDTO {
     
     @JsonProperty("artist")
-    private List<Artist> artists;
+    private List<ArtistDto> artists;
 
     public SimilarArtistsDTO() {
     }
 
-    public SimilarArtistsDTO(List<Artist> artists) {
+    public SimilarArtistsDTO(List<ArtistDto> artists) {
         this.artists = artists;
     }
 
-    public List<Artist> getArtists() {
+    public List<ArtistDto> getArtists() {
         return artists;
     }
 
-    public void setArtists(List<Artist> artists) {
+    public void setArtists(List<ArtistDto> artists) {
         this.artists = artists;
     }
 }

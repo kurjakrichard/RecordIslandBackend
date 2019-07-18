@@ -1,14 +1,12 @@
 package com.progmatic.recordislandbackend.domain;
 
-import com.progmatic.recordislandbackend.domain.Recommendation;
-import com.progmatic.recordislandbackend.domain.Authority;
-import com.progmatic.recordislandbackend.domain.AlbumRating;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -43,6 +41,8 @@ public class User implements UserDetails {
     private List<AlbumRating> albumRatings;
     @OneToMany(mappedBy = "user")
     private List<Recommendation> recommendations;
+    @ManyToMany(fetch = FetchType.EAGER)
+    private Set<Artist> likedArtists;
 
     public User() {
     }
@@ -106,6 +106,22 @@ public class User implements UserDetails {
         this.recommendations = recommendations;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public Set<Artist> getLikedArtists() {
+        return likedArtists;
+    }
+
+    public void setLikedArtists(Set<Artist> likedArtists) {
+        this.likedArtists = likedArtists;
+    }
+
     @Override
     public String getUsername() {
         return username;
@@ -134,5 +150,4 @@ public class User implements UserDetails {
     public void addAuthority(Authority authority) {
         authorities.add(authority);
     }
-
 }

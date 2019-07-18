@@ -1,7 +1,7 @@
 package com.progmatic.recordislandbackend.domain;
 
+import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -9,7 +9,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 @Entity
-public class Album {
+public class Album implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
