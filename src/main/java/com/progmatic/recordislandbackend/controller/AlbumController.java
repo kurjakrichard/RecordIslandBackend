@@ -5,13 +5,12 @@
  */
 package com.progmatic.recordislandbackend.controller;
 
-import com.progmatic.recordislandbackend.domain.Album;
+import com.progmatic.recordislandbackend.dto.AlbumControllerDto;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.ArtistNotExistsExeption;
 import com.progmatic.recordislandbackend.service.AlbumService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,14 +25,15 @@ public class AlbumController {
     private AlbumService albumService;
 
     @Autowired
-    public AlbumController(AlbumService AlbumService) {
+    public AlbumController(AlbumService albumService) {
         this.albumService = albumService;
     }
 
     @PostMapping(path = "/createalbum")
-    public ResponseEntity createAlbum(@RequestBody Album album) throws ArtistNotExistsExeption {
+    public ResponseEntity createAlbum(@RequestBody AlbumControllerDto albumDto) throws ArtistNotExistsExeption {
+
         try {
-            albumService.createAlbum(album);
+            albumService.createAlbum(albumDto);
         } catch (AlreadyExistsException ex) {
 
             return ResponseEntity.badRequest().build();
@@ -41,6 +41,5 @@ public class AlbumController {
 
         return ResponseEntity.ok().build();
     }
-   
 
 }

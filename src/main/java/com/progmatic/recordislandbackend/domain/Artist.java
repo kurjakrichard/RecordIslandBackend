@@ -22,6 +22,10 @@ public class Artist {
     public Artist() {
     }
 
+    public Artist(String name) {
+        this.name = name;
+    }
+    
     public String getName() {
         return name;
     }
