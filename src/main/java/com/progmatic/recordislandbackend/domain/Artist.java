@@ -1,6 +1,7 @@
 package com.progmatic.recordislandbackend.domain;
 
 import com.progmatic.recordislandbackend.domain.Album;
+import java.time.LocalDate;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -28,7 +29,7 @@ public class Artist {
     public void setName(String name) {
         this.name = name;
     }
-
+    
     public List<Album> getAlbums() {
         return albums;
     }

@@ -25,7 +25,7 @@ public class WebSecConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
-            .formLogin()
+                .formLogin()
                 .loginPage("/login")
                 //.permitAll()
                 .defaultSuccessUrl("/recordisland", true)
@@ -37,9 +37,9 @@ public class WebSecConfig extends WebSecurityConfigurerAdapter {
                 //.antMatchers("/recordisland/create").access("hasRole('ADMIN')")
                 .antMatchers("/css/*", "/js/*", "/images/*", "/favicon.ico").permitAll()
                 .anyRequest().authenticated();
-                
+
     }
-    
+
 //    @Bean
 //    @Override
 //    public UserDetailsService userDetailsService() {
@@ -50,7 +50,6 @@ public class WebSecConfig extends WebSecurityConfigurerAdapter {
 //        manager.createUser(new User("admin", "password", "admin@email.com", LocalDate.of(1986, Month.MARCH,15), "ROLE_ADMIN"));
 //        return manager;
 //    }
-    
     @Bean
     public static PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

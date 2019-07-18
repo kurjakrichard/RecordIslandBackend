@@ -5,9 +5,10 @@
  */
 package com.progmatic.recordislandbackend.controller;
 
-import com.progmatic.recordislandbackend.dto.RegistrationDto;
+import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
-import com.progmatic.recordislandbackend.service.UserService;
+import com.progmatic.recordislandbackend.exception.ArtistNotExistsExeption;
+import com.progmatic.recordislandbackend.service.AlbumService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,20 +21,19 @@ import org.springframework.web.bind.annotation.RestController;
  * @author balza
  */
 @RestController
-public class UserController {
+public class AlbumController {
 
-    private UserService userService;
+    private AlbumService albumService;
 
     @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
+    public AlbumController(AlbumService AlbumService) {
+        this.albumService = albumService;
     }
 
-    @PostMapping(path = "/register")
-    public ResponseEntity register(@RequestBody RegistrationDto registration) {
-//        System.out.println(registration);
+    @PostMapping(path = "/createalbum")
+    public ResponseEntity createAlbum(@RequestBody Album album) throws ArtistNotExistsExeption {
         try {
-            userService.createUser(registration);
+            albumService.createAlbum(album);
         } catch (AlreadyExistsException ex) {
 
             return ResponseEntity.badRequest().build();
@@ -41,12 +41,6 @@ public class UserController {
 
         return ResponseEntity.ok().build();
     }
-
-    @GetMapping(path = "/login")
-    public ResponseEntity reg() {
-
-        return ResponseEntity.ok().build();
-    }
-//    
+   
 
 }

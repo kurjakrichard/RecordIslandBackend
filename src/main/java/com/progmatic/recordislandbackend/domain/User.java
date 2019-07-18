@@ -3,6 +3,7 @@ package com.progmatic.recordislandbackend.domain;
 import com.progmatic.recordislandbackend.domain.Recommendation;
 import com.progmatic.recordislandbackend.domain.Authority;
 import com.progmatic.recordislandbackend.domain.AlbumRating;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -35,17 +36,18 @@ public class User implements UserDetails {
     private String email;
     private String username;
     private String password;
+    private LocalDate lastLoginDate;
     @ManyToMany
     private Set<Authority> authorities = new HashSet<>();
     @OneToMany(mappedBy = "user")
     private List<AlbumRating> albumRatings;
-    @OneToMany(mappedBy="user")
+    @OneToMany(mappedBy = "user")
     private List<Recommendation> recommendations;
 
     public User() {
     }
-    
-        public User(String username, String password, String email) {
+
+    public User(String username, String password, String email) {
         this.username = username;
         this.password = password;
         this.email = email;
@@ -58,7 +60,7 @@ public class User implements UserDetails {
     public void setEmail(String email) {
         this.email = email;
     }
-    
+
     public void setUsername(String username) {
         this.username = username;
     }
@@ -69,6 +71,14 @@ public class User implements UserDetails {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public LocalDate getLastLoginDate() {
+        return lastLoginDate;
+    }
+
+    public void setLastLoginDate(LocalDate lastLoginDate) {
+        this.lastLoginDate = lastLoginDate;
     }
 
     @Override
@@ -120,9 +130,9 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-    
-        public void addAuthority(Authority authority) {
+
+    public void addAuthority(Authority authority) {
         authorities.add(authority);
     }
-    
+
 }
