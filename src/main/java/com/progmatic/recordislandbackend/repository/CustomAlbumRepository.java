@@ -3,15 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.progmatic.recordislandbackend.exception;
+package com.progmatic.recordislandbackend.repository;
 
 /**
  *
  * @author balza
  */
-public class AlreadyExistsException extends Exception {
-
-    public AlreadyExistsException(String message) {
-        super(message);
-    }
+interface CustomAlbumRepository {
+    
 }
