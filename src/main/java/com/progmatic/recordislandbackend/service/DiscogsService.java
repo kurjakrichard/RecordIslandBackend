@@ -1,17 +1,21 @@
 package com.progmatic.recordislandbackend.service;
 
+import com.progmatic.recordislandbackend.config.RecordIslandProperties;
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.dto.AlbumDto;
 import com.progmatic.recordislandbackend.dto.DiscogsAlbumListDto;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  *
@@ -19,12 +23,28 @@ import org.springframework.web.client.RestTemplate;
  */
 @Service
 public class DiscogsService {
+    
+    private final RecordIslandProperties properties;
+    
+    @Autowired
+    public DiscogsService(RecordIslandProperties properties) {
+        this.properties = properties;
+    }
+    
 
-        public List<Album> getDiscogsPageOne() {
+    public List<Album> getDiscogsPageOne(int year) {
         RestTemplate rt = new RestTemplate();
         HttpHeaders requestHeaders = new HttpHeaders();
         HttpEntity request = new HttpEntity(requestHeaders);
-        ResponseEntity<DiscogsAlbumListDto> response = rt.exchange("https://api.discogs.com/database/search?year=2019&format=album,LP&key=zLbHxbaGHKeDBUtHZIJQ&secret=fEkUfEzVftTnhEPoRBTYsdlUeodzRfwy&page=1&per_page=100",
+        
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .scheme("https").host("api.discogs.com")
+                .path("/database/search").queryParam("year", Integer.toString(year))
+                .queryParam("format", "album,LP")
+                .queryParam("key", properties.getDiscogsApiKey()).queryParam("secret", properties.getDiscogssecretkey())
+                .queryParam("page", "1").queryParam("per_page", "100").build();
+        System.out.println(uriComponents.toUriString());
+        ResponseEntity<DiscogsAlbumListDto> response = rt.exchange(uriComponents.toUriString(),
                 HttpMethod.GET,
                 request,
                 DiscogsAlbumListDto.class);
@@ -35,10 +55,10 @@ public class DiscogsService {
         }
         return result;
     }
-    
-        private Album convertAlbumDtoToAlbum(AlbumDto albumDto) {
+
+    private Album convertAlbumDtoToAlbum(AlbumDto albumDto) {
         Album resultAlbum = new Album();
-        
+
         String[] split = albumDto.getTitle().split("(\\([0-9][0-9]*\\))? - ");
         if (split.length > 0) {
             Artist artist = new Artist();
@@ -47,7 +67,5 @@ public class DiscogsService {
             resultAlbum.setTitle(split[1]);
         }
         return resultAlbum;
-    } 
     }
-
 }

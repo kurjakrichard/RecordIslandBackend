@@ -1,5 +1,6 @@
 package com.progmatic.recordislandbackend.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
@@ -7,6 +8,8 @@ import java.util.List;
  * @author Dano
  */
 public class DiscogsAlbumListDto {
+    
+    @JsonProperty("results")
     private List<AlbumDto> albums;
 
     public DiscogsAlbumListDto() {
