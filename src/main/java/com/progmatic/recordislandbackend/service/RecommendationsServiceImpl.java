@@ -2,6 +2,7 @@ package com.progmatic.recordislandbackend.service;
 
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.User;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -17,14 +18,13 @@ import org.springframework.stereotype.Service;
 public class RecommendationsServiceImpl {
     
     @PersistenceContext
-    EntityManager em;
+    private EntityManager em;
     
-    LastFmServiceImpl lastFmService;
-    DiscogsService discogsService;
+    private final LastFmServiceImpl lastFmService;
+    private final DiscogsService discogsService;
     
     @Autowired
-    public RecommendationsServiceImpl(EntityManager em, LastFmServiceImpl lastFmService, DiscogsService discogsService) {
-        this.em = em;
+    public RecommendationsServiceImpl(LastFmServiceImpl lastFmService, DiscogsService discogsService) {
         this.lastFmService = lastFmService;
         this.discogsService = discogsService;
     }
@@ -32,7 +32,7 @@ public class RecommendationsServiceImpl {
     
     
     public Set<Album> getRecommendations() {
-        User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<Album> albums = discogsService.getDiscogsPageOne(2019);
         return null;
     }
     

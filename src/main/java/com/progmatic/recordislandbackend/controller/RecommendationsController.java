@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class RecommendationsController {
     
-    RecommendationsServiceImpl recommendationsService;
+    private final RecommendationsServiceImpl recommendationsService;
     
     @Autowired
     public RecommendationsController(RecommendationsServiceImpl recommendationsService) {

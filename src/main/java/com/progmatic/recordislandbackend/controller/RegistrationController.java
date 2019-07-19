@@ -56,5 +56,6 @@ public class RegistrationController {
     private GenreResponseDTO convertToDto(String name) {
         return new GenreResponseDTO(name);
     }
+    
 
 }
