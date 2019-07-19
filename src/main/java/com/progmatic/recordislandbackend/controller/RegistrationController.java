@@ -1,6 +1,9 @@
 package com.progmatic.recordislandbackend.controller;
 
+import com.progmatic.recordislandbackend.domain.Album;
+import com.progmatic.recordislandbackend.dto.AlbumDto;
 import com.progmatic.recordislandbackend.dto.GenreResponseDTO;
+import com.progmatic.recordislandbackend.service.DiscogsService;
 import com.progmatic.recordislandbackend.service.LastFmServiceImpl;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,10 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class RegistrationController {
 
     private final LastFmServiceImpl lastFmServiceImpl;
+    private final DiscogsService discogsService;
 
     @Autowired
-    public RegistrationController(LastFmServiceImpl lastFmServiceImpl) {
+    public RegistrationController(LastFmServiceImpl lastFmServiceImpl, DiscogsService discogsService) {
         this.lastFmServiceImpl = lastFmServiceImpl;
+        this.discogsService = discogsService;
     }
 
     @GetMapping(path = "/api/genres")
@@ -41,6 +46,11 @@ public class RegistrationController {
     public HttpStatus saveLastFmHistory(@RequestParam String username) {
         lastFmServiceImpl.saveLastFmHistory(lastFmServiceImpl.getLastFmHistory(username));
         return HttpStatus.OK;
+    }
+
+    @GetMapping(path = "/api/discogs")
+    public List<Album> getDiscogsReleases(@RequestParam int year) {
+        return discogsService.getDiscogsPageOne(year);
     }
 
     private GenreResponseDTO convertToDto(String name) {
