@@ -32,7 +32,7 @@ public class DiscogsService {
     }
     
 
-    public List<Album> getDiscogsPageOne(int year) {
+    public List<Album> getDiscogsPage(int year, int page) {
         RestTemplate rt = new RestTemplate();
         HttpHeaders requestHeaders = new HttpHeaders();
         HttpEntity request = new HttpEntity(requestHeaders);
@@ -41,8 +41,8 @@ public class DiscogsService {
                 .scheme("https").host("api.discogs.com")
                 .path("/database/search").queryParam("year", Integer.toString(year))
                 .queryParam("format", "album,LP")
-                .queryParam("key", properties.getDiscogsApiKey()).queryParam("secret", properties.getDiscogssecretkey())
-                .queryParam("page", "1").queryParam("per_page", "100").build();
+                .queryParam("key", properties.getDiscogsApiKey()).queryParam("secret", properties.getDiscogsSecretkey())
+                .queryParam("page", page).queryParam("per_page", "100").build();
         System.out.println(uriComponents.toUriString());
         ResponseEntity<DiscogsAlbumListDto> response = rt.exchange(uriComponents.toUriString(),
                 HttpMethod.GET,
@@ -62,9 +62,9 @@ public class DiscogsService {
         String[] split = albumDto.getTitle().split("(\\([0-9][0-9]*\\))? - ");
         if (split.length > 0) {
             Artist artist = new Artist();
-            artist.setName(split[0]);
+            artist.setName(split[0].trim());
             resultAlbum.setArtist(artist);
-            resultAlbum.setTitle(split[1]);
+            resultAlbum.setTitle(split[1].trim());
         }
         return resultAlbum;
     }

@@ -6,6 +6,10 @@ public class SimilarArtistsWrapperDTO {
     
     @JsonProperty("similarartists")
     private SimilarArtistsDTO similarArtists;
+    
+    private int error = -1;
+    
+    private String message;
 
     public SimilarArtistsWrapperDTO() {
     }
@@ -17,4 +21,26 @@ public class SimilarArtistsWrapperDTO {
     public void setSimilarArtists(SimilarArtistsDTO similarArtists) {
         this.similarArtists = similarArtists;
     }
+
+    public int getError() {
+        return error;
+    }
+
+    public void setError(int error) {
+        this.error = error;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+    
+    public boolean hasErrors() {
+        return error != -1;
+    }
+    
+    
 }
