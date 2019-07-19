@@ -1,12 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.progmatic.recordislandbackend.config;
 
-import com.progmatic.recordislandbackend.security.CustomLoginSuccessHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -20,27 +13,40 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-/**
- *
- * @author balza
- */
+
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecConfig extends WebSecurityConfigurerAdapter {
+
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final MySavedRequestAwareAuthenticationSuccessHandler mySavedRequestAwareAuthenticationSuccessHandler;
+    private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
+
+    @Autowired
+    public WebSecConfig(RestAuthenticationEntryPoint restAuthenticationEntryPoint,
+            MySavedRequestAwareAuthenticationSuccessHandler mySavedRequestAwareAuthenticationSuccessHandler,
+            CustomAuthenticationFailureHandler customAuthenticationFailureHandler) {
+        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
+        this.mySavedRequestAwareAuthenticationSuccessHandler = mySavedRequestAwareAuthenticationSuccessHandler;
+        this.customAuthenticationFailureHandler = customAuthenticationFailureHandler;
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
+                .cors()
+                .and()
+                .exceptionHandling()
+                .authenticationEntryPoint(restAuthenticationEntryPoint)
+                .and()
                 .formLogin()
                 .loginPage("/login")
                 .successHandler(mySavedRequestAwareAuthenticationSuccessHandler)
                 .failureHandler(customAuthenticationFailureHandler)
-                //.permitAll()
                 .and()
                 .authorizeRequests()
                 .antMatchers("/recordisland", "/register", "/login").permitAll()
-                //.antMatchers("/recordisland/create").access("hasRole('ADMIN')")
                 .antMatchers("/css/*", "/js/*", "/images/*", "/favicon.ico").permitAll()
                 .anyRequest().authenticated()
                 .and()

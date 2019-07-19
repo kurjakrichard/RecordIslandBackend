@@ -1,9 +1,13 @@
 package com.progmatic.recordislandbackend.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -24,6 +28,18 @@ public class MySavedRequestAwareAuthenticationSuccessHandler
             HttpServletResponse response,
             Authentication authentication)
             throws ServletException, IOException {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        Map<String, Object> userNameResponse = new HashMap<>();
+        
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        
+        userNameResponse.put("username", authentication.getName());
+        
+        response.getWriter().write(objectMapper.writeValueAsString(userNameResponse));
+        response.getWriter().flush();
+        response.getWriter().close();
 
         SavedRequest savedRequest
                 = requestCache.getRequest(request, response);

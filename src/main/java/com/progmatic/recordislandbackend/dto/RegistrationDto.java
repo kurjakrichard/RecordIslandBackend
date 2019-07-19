@@ -1,32 +1,27 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.progmatic.recordislandbackend.dto;
 
-import java.time.LocalDate;
-import static javax.swing.text.StyleConstants.Size;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-/**
- *
- * @author balza
- */
 public class RegistrationDto {
     
     @NotNull
-    @Size(min = 5, message = "Username must be at least {2} characters long!")
+    @NotBlank
+    @NotEmpty
+    @Size(min = 5, message = "Username must be at least {min} characters long!")
     private String username;
     @NotNull
-    @Size(min = 8, message = "Password must be at least {2} characters long!")
+    @NotBlank
+    @NotEmpty
+    @Size(min = 8, message = "Password must be at least {min} characters long!")
     private String password;
     @NotNull
     @NotBlank
     @Email
+    @NotEmpty
     private String email;
 
     public RegistrationDto() {

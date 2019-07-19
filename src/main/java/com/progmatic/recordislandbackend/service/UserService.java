@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.progmatic.recordislandbackend.service;
 
 import com.progmatic.recordislandbackend.domain.Authority;
@@ -22,7 +17,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 /**
  *
@@ -58,7 +52,7 @@ public class UserService implements UserDetailsService {
     @Transactional
     public void createUser(RegistrationDto registration) throws AlreadyExistsException {
         if (userExists(registration.getUsername())) {
-            throw new AlreadyExistsException(registration.getUsername());
+            throw new AlreadyExistsException(registration.getUsername() + " is already exists!");
         }
         Authority authority = getAuthorityByName("ROLE_USER");
         User user = new User(registration.getUsername(), passwordEncoder.encode(registration.getPassword()),
