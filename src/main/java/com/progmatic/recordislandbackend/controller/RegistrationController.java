@@ -3,6 +3,7 @@ package com.progmatic.recordislandbackend.controller;
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.dto.AlbumDto;
 import com.progmatic.recordislandbackend.dto.GenreResponseDTO;
+import com.progmatic.recordislandbackend.exception.LastFmException;
 import com.progmatic.recordislandbackend.service.DiscogsService;
 import com.progmatic.recordislandbackend.service.LastFmServiceImpl;
 import java.util.List;
@@ -33,7 +34,7 @@ public class RegistrationController {
     }
 
     @GetMapping(path = "/api/simartists")
-    public List<String> listSimilarArtists(@RequestParam String name) {
+    public List<String> listSimilarArtists(@RequestParam String name) throws LastFmException {
         return lastFmServiceImpl.listSimilarArtists(name);
     }
 
@@ -50,7 +51,7 @@ public class RegistrationController {
 
     @GetMapping(path = "/api/discogs")
     public List<Album> getDiscogsReleases(@RequestParam int year) {
-        return discogsService.getDiscogsPageOne(year);
+        return discogsService.getDiscogsPage(year, 1);
     }
 
     private GenreResponseDTO convertToDto(String name) {

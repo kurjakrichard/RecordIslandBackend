@@ -43,6 +43,8 @@ public class User implements UserDetails {
     private List<Recommendation> recommendations;
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Artist> likedArtists;
+    private boolean hasLastFmAccount = false;
+    private boolean hasSpotifyAccount = false;
 
     public User() {
     }
@@ -121,6 +123,10 @@ public class User implements UserDetails {
     public void setLikedArtists(Set<Artist> likedArtists) {
         this.likedArtists = likedArtists;
     }
+    
+    public void addArtistToLikedArtists(Artist artist) {
+        this.likedArtists.add(artist);
+    }
 
     @Override
     public String getUsername() {
@@ -150,4 +156,30 @@ public class User implements UserDetails {
     public void addAuthority(Authority authority) {
         authorities.add(authority);
     }
+
+    public boolean isHasLastFmAccount() {
+        return hasLastFmAccount;
+    }
+
+    public void setHasLastFmAccountToFalse() {
+        this.hasLastFmAccount = false;
+    }
+    
+    public void setHasLastFmAccountToTrue() {
+        this.hasLastFmAccount = true;
+    }
+
+    public boolean isHasSpotifyAccount() {
+        return hasSpotifyAccount;
+    }
+
+    public void setHasSpotifyAccountToTrue() {
+        this.hasSpotifyAccount = true;
+    }
+    
+    public void setHasSpotifyAccountToFalse() {
+        this.hasSpotifyAccount = false;
+    }
+    
+    
 }
