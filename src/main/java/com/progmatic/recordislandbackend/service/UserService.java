@@ -1,5 +1,6 @@
 package com.progmatic.recordislandbackend.service;
 
+import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.Authority;
 import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.dto.RegistrationDto;
@@ -34,6 +35,7 @@ public class UserService implements UserDetailsService {
     public UserService(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
+    
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -74,7 +76,7 @@ public class UserService implements UserDetailsService {
                 .setParameter("name", name)
                 .getSingleResult();
     }
-    
+
     @Transactional
     public void updateLastLoginDate(String username) {
         User user = em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
@@ -84,6 +86,4 @@ public class UserService implements UserDetailsService {
         user.setLastLoginDate(LocalDate.now());
     }
 
-
-    
 }

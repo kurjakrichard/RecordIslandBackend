@@ -22,6 +22,12 @@ public class AlbumRating implements Serializable{
     public AlbumRating() {
     }
 
+    public AlbumRating(Album album, boolean likes, User user) {
+        this.album = album;
+        this.likes = likes;
+        this.user = user;
+    }
+
     public Album getAlbum() {
         return album;
     }

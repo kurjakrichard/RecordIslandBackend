@@ -38,7 +38,6 @@ public class AlbumService {
     public void createAlbum(AlbumControllerDto albumDto) throws AlreadyExistsException, ArtistNotExistsExeption {
 
         String name = albumDto.getArtistName();
-        System.out.println("Az artist: " + name);
         if (albumExists(albumDto.getTitle(), albumDto.getArtistName())) {
             throw new AlreadyExistsException(albumDto.getTitle());
         }
@@ -71,4 +70,13 @@ public class AlbumService {
 
         return num == 1;
     }
+    
+    public Album albumById(String title, String artist){
+        Album album = em.createQuery("SELECT u FROM Album u WHERE u.title = :title AND u.artist.name = :artist", Album.class)
+                .setParameter("title", title)
+                .setParameter("artist", artist)
+                .getSingleResult();
+        return album;
+    }
+
 }
