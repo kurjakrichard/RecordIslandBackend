@@ -6,6 +6,7 @@ import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.dto.SimilarArtistsWrapperDTO;
 import com.progmatic.recordislandbackend.dto.TagsWrapperDTO;
 import com.progmatic.recordislandbackend.dto.TopArtistsWrapperDTO;
+import com.progmatic.recordislandbackend.exception.LastFmException;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -61,23 +62,25 @@ public class LastFmServiceImpl {
         return genres;
     }
 
-    public List<String> listSimilarArtists(String name) {
+    public List<String> listSimilarArtists(String name) throws LastFmException {
         RestTemplate rt = new RestTemplate();
 
         HttpHeaders requestHeaders = new HttpHeaders();
 
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .scheme("https").host("ws.audioscrobbler.com")
-                .path("/2.0/").queryParam("method", "artist.getsimilar&artist").queryParam("artist", name)
+                .path("/2.0/").queryParam("method", "artist.getsimilar").queryParam("artist", name)
                 .queryParam("api_key", properties.getLastFmApiKey()).queryParam("format", "json").build();
-
+        System.out.println(uriComponents.toUriString());
         HttpEntity request = new HttpEntity(requestHeaders);
         HttpEntity<SimilarArtistsWrapperDTO> response = rt.exchange(uriComponents.toUriString(),
                 HttpMethod.GET,
                 request,
                 SimilarArtistsWrapperDTO.class);
-
         SimilarArtistsWrapperDTO simartists = response.getBody();
+        if (simartists.hasErrors()) {
+            throw new LastFmException("Artist not found on last.fm!");
+        }
         List<String> result = simartists.getSimilarArtists().getArtists().stream().map(a -> a.getName()).collect(Collectors.toList());
         return result;
     }

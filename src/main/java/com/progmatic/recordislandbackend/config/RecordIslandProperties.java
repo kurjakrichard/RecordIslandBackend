@@ -9,7 +9,7 @@ public class RecordIslandProperties {
 
     private String lastFmApiKey = "";
     private String discogsApiKey = "";
-    private String discogssecretkey = "";
+    private String discogsSecretkey = "";
 
     public RecordIslandProperties() {
     }
@@ -22,8 +22,8 @@ public class RecordIslandProperties {
         return discogsApiKey;
     }
 
-    public String getDiscogssecretkey() {
-        return discogssecretkey;
+    public String getDiscogsSecretkey() {
+        return discogsSecretkey;
     }
 
     public void setLastFmApiKey(String lastFmApiKey) {
@@ -34,7 +34,7 @@ public class RecordIslandProperties {
         this.discogsApiKey = discogsApiKey;
     }
 
-    public void setDiscogssecretkey(String discogssecretkey) {
-        this.discogssecretkey = discogssecretkey;
+    public void setDiscogsSecretkey(String discogsSecretkey) {
+        this.discogsSecretkey = discogsSecretkey;
     }
 }
