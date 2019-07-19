@@ -9,6 +9,7 @@ import com.progmatic.recordislandbackend.domain.Authority;
 import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.dto.RegistrationDto;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
+import java.time.LocalDate;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -79,4 +80,16 @@ public class UserService implements UserDetailsService {
                 .setParameter("name", name)
                 .getSingleResult();
     }
+    
+    @Transactional
+    public void updateLastLoginDate(String username) {
+        User user = em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
+                .setParameter("username", username)
+                .getSingleResult();
+        System.out.println(user.getUsername());
+        user.setLastLoginDate(LocalDate.now());
+    }
+
+
+    
 }

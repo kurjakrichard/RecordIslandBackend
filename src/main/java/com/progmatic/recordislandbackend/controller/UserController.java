@@ -43,8 +43,7 @@ public class UserController {
     }
 
     @GetMapping(path = "/login")
-    public ResponseEntity reg() {
-
+    public ResponseEntity reg(@RequestBody RegistrationDto registration)  {
         return ResponseEntity.ok().build();
     }
 //    

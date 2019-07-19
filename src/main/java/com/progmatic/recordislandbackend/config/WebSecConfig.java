@@ -5,6 +5,8 @@
  */
 package com.progmatic.recordislandbackend.config;
 
+import com.progmatic.recordislandbackend.security.CustomLoginSuccessHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,14 +23,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecConfig extends WebSecurityConfigurerAdapter {
 
+    @Autowired
+    CustomLoginSuccessHandler customLoginSuccessHandler;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
-                .formLogin()
+                .formLogin().successHandler(customLoginSuccessHandler)
                 .loginPage("/login")
                 //.permitAll()
-                .defaultSuccessUrl("/recordisland", true)
                 .and()
                 .logout()
                 .and()
