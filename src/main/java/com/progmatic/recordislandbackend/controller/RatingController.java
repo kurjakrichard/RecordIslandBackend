@@ -31,9 +31,17 @@ public class RatingController {
     }
     
     @PostMapping(path = "/createlike")
-    public ResponseEntity createLike(@RequestBody AlbumRatingDto albumRatingDto) throws ArtistNotExistsExeption, AlbumNotExistsException {
+    public ResponseEntity createLike(@RequestBody AlbumRatingDto albumRatingDto) throws ArtistNotExistsExeption, AlbumNotExistsException, AlreadyExistsException{
 
             albumRatingService.createLike(albumRatingDto);
+            
+        return ResponseEntity.ok().build();
+    }
+    
+        @PostMapping(path = "/editlike")
+    public ResponseEntity editLike(@RequestBody AlbumRatingDto albumRatingDto) throws ArtistNotExistsExeption, AlbumNotExistsException {
+
+            albumRatingService.editLike(albumRatingDto);
             
         return ResponseEntity.ok().build();
     }

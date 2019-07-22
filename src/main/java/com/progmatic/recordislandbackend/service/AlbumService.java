@@ -55,11 +55,11 @@ public class AlbumService {
     }
 
     public boolean albumExists(String title, String artist) {
+        System.out.println(title + " " + artist);
         Long num = em.createQuery("SELECT COUNT(u) FROM Album u WHERE u.title = :title AND u.artist.name = :artist", Long.class)
                 .setParameter("title", title)
                 .setParameter("artist", artist)
                 .getSingleResult();
-
         return num == 1;
     }
 
