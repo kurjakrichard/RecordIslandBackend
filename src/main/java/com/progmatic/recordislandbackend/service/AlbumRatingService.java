@@ -78,7 +78,7 @@ public class AlbumRatingService {
             throw new AlbumNotExistsException("The album: " + albumRatingDto.getTitle() + " not exist!");
         }
 
-        AlbumRating albumRating = em.createQuery("SELECT a FROM AlbumRating a WHERE a.album.title = :title AND a.album.artist.name = :artist", AlbumRating.class)
+        AlbumRating albumRating = em.createQuery("SELECT (a) FROM AlbumRating a WHERE a.album.title = :title AND a.album.artist.name = :artist", AlbumRating.class)
                 .setParameter("title", title)
                 .setParameter("artist", artist)
                 .getSingleResult();
@@ -88,7 +88,7 @@ public class AlbumRatingService {
     
     
     public boolean ratingExists(String title, String artist) {
-        Long num = em.createQuery("SELECT COUNT(u) FROM Album u WHERE u.title = :title AND u.artist.name = :artist", Long.class)
+        Long num = em.createQuery("SELECT COUNT(a) FROM AlbumRating a WHERE a.album.title = :title AND a.album.artist.name = :artist", Long.class)
                 .setParameter("title", title)
                 .setParameter("artist", artist)
                 .getSingleResult();
