@@ -1,12 +1,14 @@
 package com.progmatic.recordislandbackend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.progmatic.recordislandbackend.service.UserService;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -21,6 +23,9 @@ public class MySavedRequestAwareAuthenticationSuccessHandler
         extends SimpleUrlAuthenticationSuccessHandler {
 
     private RequestCache requestCache = new HttpSessionRequestCache();
+    
+    @Autowired
+    UserService userService;
 
     @Override
     public void onAuthenticationSuccess(
@@ -36,6 +41,8 @@ public class MySavedRequestAwareAuthenticationSuccessHandler
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         
         userNameResponse.put("username", authentication.getName());
+        
+        userService.updateLastLoginDate(authentication.getName());
         
         response.getWriter().write(objectMapper.writeValueAsString(userNameResponse));
         response.getWriter().flush();

@@ -6,6 +6,7 @@ import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.dto.RegistrationDto;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -58,7 +59,7 @@ public class UserService implements UserDetailsService {
         }
         Authority authority = getAuthorityByName("ROLE_USER");
         User user = new User(registration.getUsername(), passwordEncoder.encode(registration.getPassword()),
-                registration.getEmail());
+                registration.getEmail(), registration.getLastFmUsername(), registration.getSpotifyUserName());
         user.addAuthority(authority);
         em.persist(user);
     }
@@ -82,8 +83,7 @@ public class UserService implements UserDetailsService {
         User user = em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
                 .setParameter("username", username)
                 .getSingleResult();
-        System.out.println(user.getUsername());
-        user.setLastLoginDate(LocalDate.now());
+        user.setLastLoginDate(LocalDateTime.now());
     }
 
 }

@@ -1,6 +1,5 @@
 package com.progmatic.recordislandbackend.service;
 
-import com.mysql.cj.conf.PropertyKey;
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.domain.User;

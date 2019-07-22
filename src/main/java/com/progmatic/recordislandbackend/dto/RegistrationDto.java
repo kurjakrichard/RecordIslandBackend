@@ -7,7 +7,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 public class RegistrationDto {
-    
+
     @NotNull
     @NotBlank
     @NotEmpty
@@ -23,6 +23,10 @@ public class RegistrationDto {
     @Email
     @NotEmpty
     private String email;
+    @NotNull
+    private String lastFmUsername;
+    @NotNull
+    private String spotifyUserName;
 
     public RegistrationDto() {
     }
@@ -32,7 +36,15 @@ public class RegistrationDto {
         this.password = password;
         this.email = email;
     }
-    
+
+    public RegistrationDto(String username, String password, String email, String lastFmUsername, String spotifyUserName) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.lastFmUsername = lastFmUsername;
+        this.spotifyUserName = spotifyUserName;
+    }
+
     public String getUsername() {
         return username;
     }
@@ -55,5 +67,21 @@ public class RegistrationDto {
 
     public void setEmail(String email) {
         this.email = email;
-    }    
+    }
+
+    public String getLastFmUsername() {
+        return lastFmUsername;
+    }
+
+    public void setLastFmUsername(String lastFmUsername) {
+        this.lastFmUsername = lastFmUsername;
+    }
+
+    public String getSpotifyUserName() {
+        return spotifyUserName;
+    }
+
+    public void setSpotifyUserName(String spotifyUserName) {
+        this.spotifyUserName = spotifyUserName;
+    }
 }

@@ -12,6 +12,7 @@ import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.ArtistNotExistsExeption;
 import com.progmatic.recordislandbackend.repository.AlbumRepository;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +78,16 @@ public class AlbumService {
                 .setParameter("artist", artist)
                 .getSingleResult();
         return album;
+    }
+
+    public boolean hasAlbums() {
+        try{
+        if(em.createQuery("SELECT COUNT(a) FROM Album a", Long.class).getSingleResult() > Long.valueOf(0))
+            return true;
+        } catch(NoResultException ex){
+            return false;
+        }
+        return false;
     }
 
 }

@@ -1,6 +1,6 @@
 package com.progmatic.recordislandbackend.domain;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -15,6 +15,7 @@ import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
 import javax.persistence.NamedEntityGraphs;
 import javax.persistence.OneToMany;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -34,7 +35,9 @@ public class User implements UserDetails {
     private String email;
     private String username;
     private String password;
-    private LocalDate lastLoginDate;
+    private LocalDateTime lastLoginDate;
+    @CreationTimestamp
+    private LocalDateTime createDate;
     @ManyToMany
     private Set<Authority> authorities = new HashSet<>();
     @OneToMany(mappedBy = "user")
@@ -43,16 +46,27 @@ public class User implements UserDetails {
     private List<Recommendation> recommendations;
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Artist> likedArtists;
-    private boolean hasLastFmAccount = false;
-    private boolean hasSpotifyAccount = false;
+    private String lastFmAccountName;
+    private String spotifyAccountName;
 
     public User() {
+        
     }
 
     public User(String username, String password, String email) {
         this.username = username;
         this.password = password;
         this.email = email;
+        this.lastFmAccountName = "";
+        this.spotifyAccountName = "";
+    }
+
+    public User(String username, String password, String email, String lastFmAccountName, String spotifyAccountName) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.lastFmAccountName = lastFmAccountName;
+        this.spotifyAccountName = spotifyAccountName;
     }
 
     public String getEmail() {
@@ -75,12 +89,20 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    public LocalDate getLastLoginDate() {
+    public LocalDateTime getLastLoginDate() {
         return lastLoginDate;
     }
 
-    public void setLastLoginDate(LocalDate lastLoginDate) {
+    public void setLastLoginDate(LocalDateTime lastLoginDate) {
         this.lastLoginDate = lastLoginDate;
+    }
+
+    public LocalDateTime getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(LocalDateTime createDate) {
+        this.createDate = createDate;
     }
 
     @Override
@@ -123,7 +145,7 @@ public class User implements UserDetails {
     public void setLikedArtists(Set<Artist> likedArtists) {
         this.likedArtists = likedArtists;
     }
-    
+
     public void addArtistToLikedArtists(Artist artist) {
         this.likedArtists.add(artist);
     }
@@ -157,29 +179,19 @@ public class User implements UserDetails {
         authorities.add(authority);
     }
 
-    public boolean isHasLastFmAccount() {
-        return hasLastFmAccount;
+    public String getLastFmAccountName() {
+        return lastFmAccountName;
     }
 
-    public void setHasLastFmAccountToFalse() {
-        this.hasLastFmAccount = false;
-    }
-    
-    public void setHasLastFmAccountToTrue() {
-        this.hasLastFmAccount = true;
+    public void setLastFmAccountName(String lastFmAccountName) {
+        this.lastFmAccountName = lastFmAccountName;
     }
 
-    public boolean isHasSpotifyAccount() {
-        return hasSpotifyAccount;
+    public String getSpotifyAccountName() {
+        return spotifyAccountName;
     }
 
-    public void setHasSpotifyAccountToTrue() {
-        this.hasSpotifyAccount = true;
+    public void setSpotifyAccountName(String spotifyAccountName) {
+        this.spotifyAccountName = spotifyAccountName;
     }
-    
-    public void setHasSpotifyAccountToFalse() {
-        this.hasSpotifyAccount = false;
-    }
-    
-    
 }

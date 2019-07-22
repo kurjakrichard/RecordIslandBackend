@@ -21,6 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  *
  * @author Dano
  */
+@Deprecated
 @Service
 public class DiscogsService {
     
