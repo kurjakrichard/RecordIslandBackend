@@ -10,6 +10,7 @@ import com.progmatic.recordislandbackend.domain.AlbumRating;
 import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.dto.AlbumRatingDto;
 import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
+import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.ArtistNotExistsExeption;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -37,24 +38,25 @@ public class AlbumRatingService {
     }
 
     @Transactional
-    public void createLike(AlbumRatingDto albumRatingDto) throws AlbumNotExistsException, ArtistNotExistsExeption {
+    public void createLike(AlbumRatingDto albumRatingDto) throws AlbumNotExistsException, ArtistNotExistsExeption, AlreadyExistsException {
 
         String title = albumRatingDto.getTitle();
+        String artist = albumRatingDto.getArtistname();
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = (User) userService.loadUserByUsername(username);
         if (!albumService.artistExists(albumRatingDto.getArtistname())) {
             throw new ArtistNotExistsExeption("The artist: " + albumRatingDto.getArtistname() + " not exist!");
         }
         if (!albumService.albumExists(albumRatingDto.getTitle(), albumRatingDto.getArtistname())) {
-            throw new AlbumNotExistsException(albumRatingDto.getTitle());
+            throw new AlbumNotExistsException("The album: " + albumRatingDto.getTitle() + " not exist!");
         }
-        System.out.println("jó-e?");
-
-        System.out.println("Eddig jó!");
-
+        if (ratingExists(title, artist)) {
+            throw new AlreadyExistsException("The rating: " + albumRatingDto.getTitle()+ " already exist!");
+        }
         System.out.println(user.getUsername());
-        Album album = em.createQuery("SELECT a FROM Album a WHERE a.title = :title", Album.class)
+        Album album = em.createQuery("SELECT a FROM Album a WHERE a.title = :title AND a.artist.name= :artist", Album.class)
                 .setParameter("title", title)
+                .setParameter("artist", artist)
                 .getSingleResult();
 
         AlbumRating albumRating = new AlbumRating(album, albumRatingDto.isLike(), user);
@@ -62,6 +64,29 @@ public class AlbumRatingService {
         em.persist(albumRating);
     }
 
+        @Transactional
+    public void editLike(AlbumRatingDto albumRatingDto) throws AlbumNotExistsException, ArtistNotExistsExeption {
+
+        String title = albumRatingDto.getTitle();
+        String artist = albumRatingDto.getArtistname();
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = (User) userService.loadUserByUsername(username);
+        if (!albumService.artistExists(albumRatingDto.getArtistname())) {
+            throw new ArtistNotExistsExeption("The artist: " + albumRatingDto.getArtistname() + " not exist!");
+        }
+        if (!albumService.albumExists(albumRatingDto.getTitle(), albumRatingDto.getArtistname())) {
+            throw new AlbumNotExistsException("The album: " + albumRatingDto.getTitle() + " not exist!");
+        }
+
+        AlbumRating albumRating = em.createQuery("SELECT a FROM AlbumRating a WHERE a.album.title = :title AND a.album.artist.name = :artist", AlbumRating.class)
+                .setParameter("title", title)
+                .setParameter("artist", artist)
+                .getSingleResult();
+        albumRating.setLikes(albumRatingDto.isLike());
+        em.persist(albumRating);
+    }
+    
+    
     public boolean ratingExists(String title, String artist) {
         Long num = em.createQuery("SELECT COUNT(u) FROM Album u WHERE u.title = :title AND u.artist.name = :artist", Long.class)
                 .setParameter("title", title)
