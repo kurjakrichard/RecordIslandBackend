@@ -7,6 +7,7 @@ import com.progmatic.recordislandbackend.exception.LastFmException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
@@ -43,13 +44,14 @@ public class RecommendationsServiceImpl {
         List<Album> discogsAlbums = discogsService.getDiscogsPage(2019, 4);
 
         for (Album album : discogsAlbums) {
-            List<String> similarArtists;
+            Set<Artist> similarArtists;
             try {
                 similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName());
             } catch (LastFmException ex) {
                 System.out.println(ex.getMessage() + album.getArtist().getName());
                 continue;
             }
+            //possibly not working!!!!!!! Set<String> --> Set<Artist>
             if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
                     || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
                 resultSet.add(album);
@@ -65,13 +67,18 @@ public class RecommendationsServiceImpl {
         Set<Album> allmusicAlbums = allmusicWebscrapeService.getAllMusicReleases();
 
         for (Album album : allmusicAlbums) {
-            List<String> similarArtists;
+            Set<Artist> similarArtists;
             try {
+                if (album.getArtist().getSimilarArtists().isEmpty()) {
                 similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName());
+                } else {
+                    similarArtists = album.getArtist().getSimilarArtists();
+                }
             } catch (LastFmException ex) {
                 System.out.println(ex.getMessage() + album.getArtist().getName());
                 continue;
             }
+            //possibly not working!!!!!! Set<String> --> Set<Artist>
             if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
                     || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
                 resultSet.add(album);

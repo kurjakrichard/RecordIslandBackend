@@ -1,6 +1,7 @@
 package com.progmatic.recordislandbackend.controller;
 
 import com.progmatic.recordislandbackend.domain.Album;
+import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.dto.GenreResponseDTO;
 import com.progmatic.recordislandbackend.exception.LastFmException;
 import com.progmatic.recordislandbackend.service.AllMusicWebScrapeService;
@@ -38,7 +39,7 @@ public class RegistrationController {
     }
 
     @GetMapping(path = "/api/simartists")
-    public List<String> listSimilarArtists(@RequestParam String name) throws LastFmException {
+    public Set<Artist> listSimilarArtists(@RequestParam String name) throws LastFmException {
         return lastFmServiceImpl.listSimilarArtists(name);
     }
 

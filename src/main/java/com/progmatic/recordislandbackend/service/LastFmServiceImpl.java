@@ -3,11 +3,14 @@ package com.progmatic.recordislandbackend.service;
 import com.progmatic.recordislandbackend.config.RecordIslandProperties;
 import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.domain.User;
+import com.progmatic.recordislandbackend.dto.ArtistDto;
 import com.progmatic.recordislandbackend.dto.SimilarArtistsWrapperDTO;
 import com.progmatic.recordislandbackend.dto.TagsWrapperDTO;
 import com.progmatic.recordislandbackend.dto.TopArtistsWrapperDTO;
 import com.progmatic.recordislandbackend.exception.LastFmException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -62,7 +65,7 @@ public class LastFmServiceImpl {
         return genres;
     }
 
-    public List<String> listSimilarArtists(String name) throws LastFmException {
+    public Set<Artist> listSimilarArtists(String name) throws LastFmException {
         RestTemplate rt = new RestTemplate();
 
         HttpHeaders requestHeaders = new HttpHeaders();
@@ -81,10 +84,14 @@ public class LastFmServiceImpl {
         if (simartists.hasErrors()) {
             throw new LastFmException("Artist not found on last.fm!");
         }
-        List<String> result = simartists.getSimilarArtists().getArtists().stream().map(a -> a.getName()).collect(Collectors.toList());
+        Set<Artist> result = new HashSet<>();
+        for (ArtistDto simartist : simartists.getSimilarArtists().getArtists()) {
+            result.add(new Artist(simartist.getName()));
+        }
+//        List<String> result = simartists.getSimilarArtists().getArtists().stream().map(a -> a.getName()).collect(Collectors.toList());
         return result;
     }
-
+   
     public List<String> listTopArtistsByGenre(String genre) {
         RestTemplate rt = new RestTemplate();
 
