@@ -1,12 +1,13 @@
 package com.progmatic.recordislandbackend.controller;
 
 import com.progmatic.recordislandbackend.domain.Album;
-import com.progmatic.recordislandbackend.dto.AlbumDto;
 import com.progmatic.recordislandbackend.dto.GenreResponseDTO;
 import com.progmatic.recordislandbackend.exception.LastFmException;
+import com.progmatic.recordislandbackend.service.AllMusicWebScrapeService;
 import com.progmatic.recordislandbackend.service.DiscogsService;
 import com.progmatic.recordislandbackend.service.LastFmServiceImpl;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,11 +20,14 @@ public class RegistrationController {
 
     private final LastFmServiceImpl lastFmServiceImpl;
     private final DiscogsService discogsService;
+    private final AllMusicWebScrapeService allmusicWebscrapeService;
 
     @Autowired
-    public RegistrationController(LastFmServiceImpl lastFmServiceImpl, DiscogsService discogsService) {
+    public RegistrationController(LastFmServiceImpl lastFmServiceImpl, DiscogsService discogsService,
+            AllMusicWebScrapeService allMusicWebScrapeService) {
         this.lastFmServiceImpl = lastFmServiceImpl;
         this.discogsService = discogsService;
+        this.allmusicWebscrapeService = allMusicWebScrapeService;
     }
 
     @GetMapping(path = "/api/genres")
@@ -57,6 +61,12 @@ public class RegistrationController {
     private GenreResponseDTO convertToDto(String name) {
         return new GenreResponseDTO(name);
     }
+    
+    @GetMapping(path = "/api/allmusic")
+    public Set<Album> getDiscogsReleases() {
+        return allmusicWebscrapeService.getAllMusicReleases();
+    }
+    
     
 
 }

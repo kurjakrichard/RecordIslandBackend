@@ -28,9 +28,14 @@ public class RecommendationsController {
         this.recommendationsService = recommendationsService;
     }
     
-    @GetMapping(value = {"/api/", "/api/welcome"})
-    public Set<Album> getUserRecommendations() throws LastFmException {
-        return recommendationsService.getRecommendations();
+    @GetMapping(value = {"/api/discogsRecommendation"})
+    public Set<Album> getUserRecommendationsFromDiscogs() throws LastFmException {
+        return recommendationsService.getDiscogsRecommendations();
+    }
+    
+    @GetMapping(value = {"/api/allmusicRecommendation"})
+    public Set<Album> getUserRecommendationsFromAllmusic() throws LastFmException {
+        return recommendationsService.getAllmusicRecommendations();
     }
     
     

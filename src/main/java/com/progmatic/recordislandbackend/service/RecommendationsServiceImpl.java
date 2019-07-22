@@ -26,21 +26,46 @@ public class RecommendationsServiceImpl {
     @PersistenceContext
     EntityManager em;
 
-    LastFmServiceImpl lastFmService;
-    DiscogsService discogsService;
+    private final LastFmServiceImpl lastFmService;
+    private final DiscogsService discogsService;
+    private final AllMusicWebScrapeService allmusicWebscrapeService;
 
     @Autowired
-    public RecommendationsServiceImpl(LastFmServiceImpl lastFmService, DiscogsService discogsService) {
+    public RecommendationsServiceImpl(LastFmServiceImpl lastFmService, DiscogsService discogsService, 
+            AllMusicWebScrapeService allmusicWebscrapeService) {
         this.lastFmService = lastFmService;
         this.discogsService = discogsService;
+        this.allmusicWebscrapeService = allmusicWebscrapeService;
     }
 
-    public Set<Album> getRecommendations() throws LastFmException {
+    public Set<Album> getDiscogsRecommendations() throws LastFmException {
         User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         HashSet<Album> resultSet = new HashSet();
         List<Album> discogsAlbums = discogsService.getDiscogsPage(2019, 4);
 
         for (Album album : discogsAlbums) {
+            List<String> similarArtists;
+            try {
+                similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName());
+            } catch (LastFmException ex) {
+                System.out.println(ex.getMessage() + album.getArtist().getName());
+                continue;
+            }
+            if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
+                    || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
+                resultSet.add(album);
+            }
+        }
+        return resultSet;
+
+    }
+    
+    public Set<Album> getAllmusicRecommendations() throws LastFmException {
+        User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        HashSet<Album> resultSet = new HashSet();
+        Set<Album> allmusicAlbums = allmusicWebscrapeService.getAllMusicReleases();
+
+        for (Album album : allmusicAlbums) {
             List<String> similarArtists;
             try {
                 similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName());
