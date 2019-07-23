@@ -22,7 +22,7 @@ public class Artist implements Serializable {
     private String name;
     @OneToMany(mappedBy="artist")
     private List<Album> albums;
-    @ManyToMany(mappedBy="parent", fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Artist> similarArtists;
     
     public Artist() {
