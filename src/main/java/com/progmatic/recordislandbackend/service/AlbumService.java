@@ -11,6 +11,7 @@ import com.progmatic.recordislandbackend.dto.AlbumControllerDto;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.ArtistNotExistsExeption;
 import com.progmatic.recordislandbackend.repository.AlbumRepository;
+import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -88,6 +89,10 @@ public class AlbumService {
             return false;
         }
         return false;
+    }
+    
+    public List<Album> getAllAlbumsFromDb() {
+        return em.createQuery("SELECT alb FROM Album alb").getResultList();
     }
 
 }

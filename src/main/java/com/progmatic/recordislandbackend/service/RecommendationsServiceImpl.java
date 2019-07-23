@@ -3,7 +3,10 @@ package com.progmatic.recordislandbackend.service;
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.domain.User;
+import com.progmatic.recordislandbackend.dto.ArtistDto;
 import com.progmatic.recordislandbackend.exception.LastFmException;
+import com.progmatic.recordislandbackend.exception.UserNotFoundException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,13 +32,17 @@ public class RecommendationsServiceImpl {
     private final LastFmServiceImpl lastFmService;
     private final DiscogsService discogsService;
     private final AllMusicWebScrapeService allmusicWebscrapeService;
+    private final UserService userService;
+    private final AlbumService albumService;
 
     @Autowired
-    public RecommendationsServiceImpl(LastFmServiceImpl lastFmService, DiscogsService discogsService, 
-            AllMusicWebScrapeService allmusicWebscrapeService) {
+    public RecommendationsServiceImpl(LastFmServiceImpl lastFmService, DiscogsService discogsService,
+            AllMusicWebScrapeService allmusicWebscrapeService, UserService userService, AlbumService albumService) {
         this.lastFmService = lastFmService;
         this.discogsService = discogsService;
         this.allmusicWebscrapeService = allmusicWebscrapeService;
+        this.userService = userService;
+        this.albumService = albumService;
     }
 
     public Set<Album> getDiscogsRecommendations() throws LastFmException {
@@ -44,14 +51,39 @@ public class RecommendationsServiceImpl {
         List<Album> discogsAlbums = discogsService.getDiscogsPage(2019, 4);
 
         for (Album album : discogsAlbums) {
-            Set<Artist> similarArtists;
+            Set<ArtistDto> similarArtists;
             try {
                 similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName());
             } catch (LastFmException ex) {
                 System.out.println(ex.getMessage() + album.getArtist().getName());
                 continue;
             }
-            //possibly not working!!!!!!! Set<String> --> Set<Artist>
+            if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
+                    || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.stream().anyMatch(artist -> artist.getName().equals(a))))) {
+                resultSet.add(album);
+            }
+        }
+        return resultSet;
+
+    }
+
+    public Set<Album> getAllmusicRecommendations() throws LastFmException {
+        User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        HashSet<Album> resultSet = new HashSet();
+        Set<Album> allmusicAlbums = allmusicWebscrapeService.getAllMusicReleases();
+
+        for (Album album : allmusicAlbums) {
+            Set<String> similarArtists;
+            try {
+                if (album.getArtist().getSimilarArtists().isEmpty()) {
+                    similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName()).stream().map(ArtistDto::getName).collect(Collectors.toSet());
+                } else {
+                    similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
+                }
+            } catch (LastFmException ex) {
+                System.out.println(ex.getMessage() + album.getArtist().getName());
+                continue;
+            }
             if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
                     || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
                 resultSet.add(album);
@@ -61,38 +93,39 @@ public class RecommendationsServiceImpl {
 
     }
     
-    public Set<Album> getAllmusicRecommendations() throws LastFmException {
+    public List<Album> getAllmusicRecommendationsFromDb() throws LastFmException {
         User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        HashSet<Album> resultSet = new HashSet();
-        Set<Album> allmusicAlbums = allmusicWebscrapeService.getAllMusicReleases();
+        ArrayList<Album> resultList = new ArrayList<>();
+        List<Album> allmusicAlbums = albumService.getAllAlbumsFromDb();
 
         for (Album album : allmusicAlbums) {
-            Set<Artist> similarArtists;
+            Set<String> similarArtists;
             try {
                 if (album.getArtist().getSimilarArtists().isEmpty()) {
-                similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName());
+                    similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName()).stream().map(ArtistDto::getName).collect(Collectors.toSet());
                 } else {
-                    similarArtists = album.getArtist().getSimilarArtists();
+                    similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
                 }
             } catch (LastFmException ex) {
                 System.out.println(ex.getMessage() + album.getArtist().getName());
                 continue;
             }
-            //possibly not working!!!!!! Set<String> --> Set<Artist>
             if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
                     || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
-                resultSet.add(album);
+                resultList.add(album);
             }
         }
-        return resultSet;
+        return resultList;
 
     }
+    
+    
 
     @Transactional
     @PatchMapping
-    public void updateUserLikedArtists(Artist artist) {
-        User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        loggedInUser.addArtistToLikedArtists(artist);
+    public void updateUserLikedArtists(Artist artist) throws UserNotFoundException {
+        User dbUser = userService.getLoggedInUser();
+        dbUser.addArtistToLikedArtists(artist);
     }
 
 }

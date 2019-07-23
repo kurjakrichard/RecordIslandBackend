@@ -65,7 +65,7 @@ public class LastFmServiceImpl {
         return genres;
     }
 
-    public Set<Artist> listSimilarArtists(String name) throws LastFmException {
+    public Set<ArtistDto> listSimilarArtists(String name) throws LastFmException {
         RestTemplate rt = new RestTemplate();
 
         HttpHeaders requestHeaders = new HttpHeaders();
@@ -84,12 +84,12 @@ public class LastFmServiceImpl {
         if (simartists.hasErrors()) {
             throw new LastFmException("Artist not found on last.fm!");
         }
-        Set<Artist> result = new HashSet<>();
-        for (ArtistDto simartist : simartists.getSimilarArtists().getArtists()) {
-            result.add(new Artist(simartist.getName()));
-        }
+//        Set<Artist> result = new HashSet<>();
+//        for (ArtistDto simartist : simartists.getSimilarArtists().getArtists()) {
+//            result.add(new Artist(simartist.getName()));
+//        }
 //        List<String> result = simartists.getSimilarArtists().getArtists().stream().map(a -> a.getName()).collect(Collectors.toList());
-        return result;
+        return new HashSet<>(simartists.getSimilarArtists().getArtists());
     }
    
     public List<String> listTopArtistsByGenre(String genre) {

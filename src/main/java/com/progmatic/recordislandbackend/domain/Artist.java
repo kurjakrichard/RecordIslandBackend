@@ -1,11 +1,12 @@
 package com.progmatic.recordislandbackend.domain;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;import javax.persistence.ManyToMany;
@@ -22,8 +23,8 @@ public class Artist implements Serializable {
     private String name;
     @OneToMany(mappedBy="artist")
     private List<Album> albums;
-    @ManyToMany(mappedBy="parent", fetch = FetchType.EAGER)
-    private Set<Artist> similarArtists;
+    @ManyToMany
+    private Set<Artist> similarArtists = new HashSet<>();
     
     public Artist() {
        
@@ -62,10 +63,39 @@ public class Artist implements Serializable {
     }
 
     public void setSimilarArtists(Set<Artist> similarArtistsForThis) {
-        for (Artist similarArtist : similarArtistsForThis) {
-            this.similarArtists.add(similarArtist);
-        }
+        this.similarArtists = similarArtistsForThis;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 89 * hash + this.id;
+        hash = 89 * hash + Objects.hashCode(this.name);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Artist other = (Artist) obj;
+        if (this.id != other.id) {
+            return false;
+        }
+        if (!Objects.equals(this.name, other.name)) {
+            return false;
+        }
+        return true;
+    }
+    
+    
     
     
 }

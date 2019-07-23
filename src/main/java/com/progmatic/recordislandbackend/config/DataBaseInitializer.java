@@ -1,16 +1,33 @@
 package com.progmatic.recordislandbackend.config;
 
+import com.progmatic.recordislandbackend.domain.Album;
+import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.domain.Authority;
+import com.progmatic.recordislandbackend.dto.ArtistDto;
 import com.progmatic.recordislandbackend.dto.RegistrationDto;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
-import com.progmatic.recordislandbackend.service.UserService;;
+import com.progmatic.recordislandbackend.exception.LastFmException;
+import com.progmatic.recordislandbackend.exception.UserNotFoundException;
+import com.progmatic.recordislandbackend.service.AllMusicWebScrapeService;
+import com.progmatic.recordislandbackend.service.ArtistService;
+import com.progmatic.recordislandbackend.service.LastFmServiceImpl;
+import com.progmatic.recordislandbackend.service.UserService;
+import java.util.HashSet;
+import java.util.Set;
+;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import org.hibernate.exception.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+
+
 
 @Component
 public class DataBaseInitializer {
@@ -19,7 +36,15 @@ public class DataBaseInitializer {
     private EntityManager em;
     @Autowired
     private UserService userService;
-    
+    @Autowired
+    private AllMusicWebScrapeService allMusicWebscrapeService;
+    @Autowired
+    private LastFmServiceImpl lastFmServiceImpl;
+    @Autowired
+    private ArtistService artistService;
+
+    Logger logger = LoggerFactory.getLogger(DataBaseInitializer.class);
+
     @Transactional
     public void init() throws AlreadyExistsException {
         if (em.createQuery("SELECT aut FROM Authority aut").getResultList().isEmpty()) {
@@ -32,9 +57,47 @@ public class DataBaseInitializer {
     }
 
     @EventListener(classes = ContextRefreshedEvent.class)
-    public void onAppStartup(ContextRefreshedEvent ev) throws AlreadyExistsException {
+    public void onAppStartup(ContextRefreshedEvent ev) throws AlreadyExistsException, LastFmException {
         DataBaseInitializer dbInitializer = ev.getApplicationContext().getBean(DataBaseInitializer.class);
         dbInitializer.init();
+        dbInitializer.getAllmusicRecommendations();
     }
 
+    @Transactional
+    public void getAllmusicRecommendations() {
+        if (em.createQuery("SELECT COUNT(alb.id) FROM Album alb", Long.class).getSingleResult() == 0) {
+            Set<Album> allMusicReleases = allMusicWebscrapeService.getAllMusicReleases();
+            for (Album allMusicRelease : allMusicReleases) {
+                try {
+                    Artist artist = em.createQuery("SELECT art FROM Artist art WHERE art.name = :name", Artist.class).setParameter("name", allMusicRelease.getArtist().getName()).getSingleResult();
+                    allMusicRelease.setArtist(artist);
+
+                } catch (NoResultException ex) {
+                    em.persist(allMusicRelease.getArtist());
+                    em.flush();
+                    try {
+                        Set<ArtistDto> similarArtists;
+                        similarArtists = lastFmServiceImpl.listSimilarArtists(allMusicRelease.getArtist().getName());
+                        Set<Artist> artists = new HashSet<>();
+                        for (ArtistDto similarArtist : similarArtists) {
+                            try {
+                                Artist currentArtist = artistService.findArtistByName(similarArtist.getName());
+                                artists.add(currentArtist);
+                            } catch (UserNotFoundException ex1) {
+                                Artist newArtist = new Artist(similarArtist.getName());
+                                em.persist(newArtist);
+                                em.flush();
+                                artists.add(newArtist);
+                            }
+                        }
+                        allMusicRelease.getArtist().setSimilarArtists(artists);
+                    } catch (LastFmException ex1) {
+                        logger.debug(ex1.getMessage());
+                    }
+
+                }
+                em.persist(allMusicRelease);
+            }
+        }
+    }
 }
