@@ -8,9 +8,12 @@ package com.progmatic.recordislandbackend.service;
 import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.domain.Artist_;
 import com.progmatic.recordislandbackend.exception.LastFmException;
+import com.progmatic.recordislandbackend.exception.NoSimilarArtistsException;
 import com.progmatic.recordislandbackend.exception.UserNotFoundException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -67,6 +70,13 @@ public class ArtistService {
         } catch (NoResultException ex) {
             throw new UserNotFoundException("User with name " + name + " cannot be found!");
         }
+    }
+    
+    public Set<Artist> getSimilarArtistsByIdFromDb(int id) throws NoSimilarArtistsException{
+        Set<Artist> resultSet = em.createQuery("Select art FROM Artist art JOIN FETCH art.similarArtists where art.id = :id", Artist.class)
+                .setParameter("id", id)
+                .getResultStream().collect(Collectors.toSet());
+        return resultSet;
     }
 
 }
