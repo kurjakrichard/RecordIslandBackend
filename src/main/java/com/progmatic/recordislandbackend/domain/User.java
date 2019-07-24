@@ -48,6 +48,8 @@ public class User implements UserDetails {
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Artist> likedArtists;
     @ManyToMany(fetch = FetchType.EAGER)
+    private Set<Artist> dislikedArtists;
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Album> albumRecommendations = new HashSet<>();
     private String lastFmAccountName;
     private String spotifyAccountName;
@@ -217,6 +219,16 @@ public class User implements UserDetails {
     public Album getAlbumFromAlbumRecommendations(Album album) {
         return this.albumRecommendations.stream().filter(alb -> alb.getTitle().equals(album.getTitle())).findFirst().get();
     }
+
+    public Set<Artist> getDislikedArtists() {
+        return dislikedArtists;
+    }
+
+    public void setDislikedArtists(Set<Artist> dislikedArtists) {
+        this.dislikedArtists = dislikedArtists;
+    }
     
-    
+    public void addArtistToDislikedArtists(Artist artist) {
+        this.dislikedArtists.add(artist);
+    }
 }

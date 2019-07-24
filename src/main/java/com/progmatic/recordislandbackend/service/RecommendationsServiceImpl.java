@@ -99,7 +99,7 @@ public class RecommendationsServiceImpl {
     }
     
     public List<AlbumResponseDto> getAllmusicRecommendationsFromDb() throws LastFmException, UserNotFoundException {
-        User loggedInUser = userService.getLoggedInUser();
+        User loggedInUser = userService.getLoggedInUserForTransactions();
         ArrayList<AlbumResponseDto> resultList = new ArrayList<>();
         List<Album> allmusicAlbums = albumService.getAllAlbumsFromDb();
 
@@ -131,21 +131,27 @@ public class RecommendationsServiceImpl {
     }
 
     @Transactional
-    @PatchMapping
-    public void updateUserLikedArtists(Artist artist) throws UserNotFoundException {
-        userService.getLoggedInUser().addArtistToLikedArtists(artist);
+    public void addArtistToLikedArtistsOfLoggedInUser(Artist artist) throws UserNotFoundException {
+        userService.getLoggedInUserForTransactions().addArtistToLikedArtists(artist);
     }
     
     @Transactional
-    @PatchMapping
     public void addAlbumToAlbumRecommendationsOfLoggedInUser(Album album) throws UserNotFoundException {
-        userService.getLoggedInUser().addAlbumToAlbumRecommendations(album);
+        userService.getLoggedInUserForTransactions().addAlbumToAlbumRecommendations(album);
     }
     
     @Transactional
-    @DeleteMapping
     public void removeAlbumFromAlbumRecommendationsOfLoggedinUser(Album album) throws UserNotFoundException {
-        userService.getLoggedInUser().removeAlbumFromAlbumRecommendations(album);
+        userService.getLoggedInUserForTransactions().removeAlbumFromAlbumRecommendations(album);
+    }
+    
+    @Transactional
+    public void addArtistToUsersDislikedArtists(Artist artist) throws UserNotFoundException {
+        userService.getLoggedInUserForTransactions().addArtistToDislikedArtists(artist);
+    }
+    
+    public Set<Album> getRecommendationsOfLoggedInUser() throws UserNotFoundException{
+        return userService.getLoggedInUserForTransactions().getAlbumRecommendations();
     }
     
     

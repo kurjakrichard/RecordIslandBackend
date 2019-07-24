@@ -127,7 +127,7 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    public User getLoggedInUser() throws UserNotFoundException {
+    public User getLoggedInUserForTransactions() throws UserNotFoundException {
         User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User dbUser = findUserByName(loggedInUser.getUsername());
         return dbUser;
