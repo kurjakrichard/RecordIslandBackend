@@ -1,10 +1,8 @@
 package com.progmatic.recordislandbackend.service;
 
 import com.progmatic.recordislandbackend.domain.Album;
-import com.progmatic.recordislandbackend.domain.AlbumDTO;
 import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.domain.User;
-import com.progmatic.recordislandbackend.dto.AlbumDto;
 import com.progmatic.recordislandbackend.dto.AlbumResponseDto;
 import com.progmatic.recordislandbackend.dto.ArtistDto;
 import com.progmatic.recordislandbackend.exception.LastFmException;
@@ -126,7 +124,7 @@ public class RecommendationsServiceImpl {
                 resultList.add(AlbumResponseDto.from(album));
             }
         }
-        return resultList.stream().map(a -> AlbumDTO.from(a)).collect(Collectors.toList());
+        return resultList;
 
     }
 

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.progmatic.recordislandbackend.dto;
 
 import com.progmatic.recordislandbackend.domain.Album;
@@ -12,6 +7,8 @@ import com.progmatic.recordislandbackend.domain.Album;
  * @author Dano
  */
 public class AlbumResponseDto {
+
+    private int id;
     private String name;
     private String artist;
     private String img;
@@ -19,17 +16,24 @@ public class AlbumResponseDto {
     public AlbumResponseDto() {
     }
 
-    public AlbumResponseDto(String name, String artist, String img) {
+    public AlbumResponseDto(int id, String name, String artist, String img) {
+        this.id = id;
         this.name = name;
         this.artist = artist;
         this.img = img;
     }
-     
+
     public static AlbumResponseDto from(Album album) {
-        return new AlbumResponseDto(album.getTitle(), album.getArtist().getName(), album.getImg());
+        return new AlbumResponseDto(album.getId(), album.getTitle(), album.getArtist().getName(), album.getImg());
     }
 
-    
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -54,7 +58,5 @@ public class AlbumResponseDto {
     public void setImg(String img) {
         this.img = img;
     }
-     
-    
-    
+
 }

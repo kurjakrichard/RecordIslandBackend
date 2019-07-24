@@ -51,7 +51,7 @@ public class DataBaseInitializer {
             em.flush();
             RegistrationDto registration = new RegistrationDto("admin", "admin", "admin@recordisland.com");
             registration.setLastFmUsername("life_is_fun");
-            registration.setSpotifyUserName("");
+            registration.setSpotifyUsername("");
             userService.createUser(registration, true);
         }
     }

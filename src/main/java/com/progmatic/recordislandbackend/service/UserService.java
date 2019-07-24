@@ -72,7 +72,7 @@ public class UserService implements UserDetailsService {
             authority = getAuthorityByName("ROLE_USER");
         }
         User user = new User(registration.getUsername(), passwordEncoder.encode(registration.getPassword()),
-                registration.getEmail(), registration.getLastFmUsername(), registration.getSpotifyUserName());
+                registration.getEmail(), registration.getLastFmUsername(), registration.getSpotifyUsername());
         user.addAuthority(authority);
         em.persist(user);
     }

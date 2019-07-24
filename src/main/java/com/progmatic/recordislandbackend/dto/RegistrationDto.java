@@ -26,7 +26,7 @@ public class RegistrationDto {
     @NotNull
     private String lastFmUsername;
     @NotNull
-    private String spotifyUserName;
+    private String spotifyUsername;
 
     public RegistrationDto() {
     }
@@ -37,12 +37,12 @@ public class RegistrationDto {
         this.email = email;
     }
 
-    public RegistrationDto(String username, String password, String email, String lastFmUsername, String spotifyUserName) {
+    public RegistrationDto(String username, String password, String email, String lastFmUsername, String spotifyUsername) {
         this.username = username;
         this.password = password;
         this.email = email;
         this.lastFmUsername = lastFmUsername;
-        this.spotifyUserName = spotifyUserName;
+        this.spotifyUsername = spotifyUsername;
     }
 
     public String getUsername() {
@@ -77,11 +77,11 @@ public class RegistrationDto {
         this.lastFmUsername = lastFmUsername;
     }
 
-    public String getSpotifyUserName() {
-        return spotifyUserName;
+    public String getSpotifyUsername() {
+        return spotifyUsername;
     }
 
-    public void setSpotifyUserName(String spotifyUserName) {
-        this.spotifyUserName = spotifyUserName;
+    public void setSpotifyUsername(String spotifyUsername) {
+        this.spotifyUsername = spotifyUsername;
     }
 }
