@@ -3,6 +3,8 @@ package com.progmatic.recordislandbackend.service;
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.domain.User;
+import com.progmatic.recordislandbackend.dto.AlbumDto;
+import com.progmatic.recordislandbackend.dto.AlbumResponseDto;
 import com.progmatic.recordislandbackend.dto.ArtistDto;
 import com.progmatic.recordislandbackend.exception.LastFmException;
 import com.progmatic.recordislandbackend.exception.UserNotFoundException;
@@ -34,15 +36,18 @@ public class RecommendationsServiceImpl {
     private final AllMusicWebScrapeService allmusicWebscrapeService;
     private final UserService userService;
     private final AlbumService albumService;
+    private final ArtistService artistService;
 
     @Autowired
     public RecommendationsServiceImpl(LastFmServiceImpl lastFmService, DiscogsService discogsService,
-            AllMusicWebScrapeService allmusicWebscrapeService, UserService userService, AlbumService albumService) {
+            AllMusicWebScrapeService allmusicWebscrapeService, UserService userService, AlbumService albumService,
+            ArtistService artistService) {
         this.lastFmService = lastFmService;
         this.discogsService = discogsService;
         this.allmusicWebscrapeService = allmusicWebscrapeService;
         this.userService = userService;
         this.albumService = albumService;
+        this.artistService = artistService;
     }
 
     public Set<Album> getDiscogsRecommendations() throws LastFmException {
@@ -93,26 +98,31 @@ public class RecommendationsServiceImpl {
 
     }
     
-    public List<Album> getAllmusicRecommendationsFromDb() throws LastFmException {
+    public List<AlbumResponseDto> getAllmusicRecommendationsFromDb() throws LastFmException {
         User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        ArrayList<Album> resultList = new ArrayList<>();
+        ArrayList<AlbumResponseDto> resultList = new ArrayList<>();
         List<Album> allmusicAlbums = albumService.getAllAlbumsFromDb();
 
         for (Album album : allmusicAlbums) {
-            Set<String> similarArtists;
-            try {
-                if (album.getArtist().getSimilarArtists().isEmpty()) {
-                    similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName()).stream().map(ArtistDto::getName).collect(Collectors.toSet());
-                } else {
-                    similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
-                }
-            } catch (LastFmException ex) {
-                System.out.println(ex.getMessage() + album.getArtist().getName());
-                continue;
-            }
+            Set<String> similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
+
+
+//            try {
+//                if (album.getArtist().getSimilarArtists().isEmpty()) {
+//                    similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName()).stream().map(ArtistDto::getName).collect(Collectors.toSet());
+//                    
+//                } else {
+//                    similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
+//                }
+//            } catch (LastFmException ex) {
+//                System.out.println(ex.getMessage() + album.getArtist().getName());
+//                continue;
+//            }
+
+
             if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
                     || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
-                resultList.add(album);
+                resultList.add(AlbumResponseDto.from(album));
             }
         }
         return resultList;

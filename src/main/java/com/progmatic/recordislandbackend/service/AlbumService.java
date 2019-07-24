@@ -8,10 +8,12 @@ package com.progmatic.recordislandbackend.service;
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.dto.AlbumControllerDto;
+import com.progmatic.recordislandbackend.dto.AlbumResponseDto;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.ArtistNotExistsExeption;
 import com.progmatic.recordislandbackend.repository.AlbumRepository;
 import java.util.List;
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -35,6 +37,7 @@ public class AlbumService {
     public AlbumService(AlbumRepository albumRepository) {
         this.albumRepository = albumRepository;
     }
+    
 
     @Transactional
     public void createAlbum(AlbumControllerDto albumDto) throws AlreadyExistsException, ArtistNotExistsExeption {
@@ -92,7 +95,12 @@ public class AlbumService {
     }
     
     public List<Album> getAllAlbumsFromDb() {
-        return em.createQuery("SELECT alb FROM Album alb").getResultList();
+        EntityGraph eg = em.createEntityGraph("albmsWithSimilarArtists");
+        return em.createQuery("SELECT alb FROM Album alb")
+                .setHint("javax.persistence.fetchgraph", eg)
+                .getResultList();
     }
+    
+    
 
 }

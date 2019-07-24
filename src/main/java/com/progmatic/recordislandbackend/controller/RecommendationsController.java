@@ -1,8 +1,10 @@
 package com.progmatic.recordislandbackend.controller;
 
 import com.progmatic.recordislandbackend.domain.Album;
+import com.progmatic.recordislandbackend.dto.AlbumResponseDto;
 import com.progmatic.recordislandbackend.exception.LastFmException;
 import com.progmatic.recordislandbackend.service.RecommendationsServiceImpl;
+import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,8 +30,8 @@ public class RecommendationsController {
     }
     
     @GetMapping(value = {"/api/allmusicRecommendation"})
-    public Set<Album> getUserRecommendationsFromAllmusic() throws LastFmException {
-        return recommendationsService.getAllmusicRecommendations();
+    public List<AlbumResponseDto> getUserRecommendationsFromAllmusic() throws LastFmException {
+        return recommendationsService.getAllmusicRecommendationsFromDb();
     }
     
     
