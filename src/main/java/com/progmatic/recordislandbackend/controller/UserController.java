@@ -22,7 +22,8 @@ public class UserController {
 
     @PostMapping(path = "/register")
     public ResponseEntity register(@Valid @RequestBody RegistrationDto registration) throws AlreadyExistsException {
-        userService.createUser(registration);
+        userService.createUser(registration, false);
+        userService.addUsersLastFmHistory(registration);
         return ResponseEntity.ok().build();
     }
 }

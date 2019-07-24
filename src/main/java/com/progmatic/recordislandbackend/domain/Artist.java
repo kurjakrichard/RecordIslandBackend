@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;import javax.persistence.ManyToMany;
@@ -21,9 +22,9 @@ public class Artist implements Serializable {
     private int id;
     @Column(unique=true)
     private String name;
-    @OneToMany(mappedBy="artist")
+    @OneToMany(mappedBy="artist", fetch = FetchType.EAGER)
     private List<Album> albums;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Artist> similarArtists = new HashSet<>();
     
     public Artist() {

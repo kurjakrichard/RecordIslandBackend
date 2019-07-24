@@ -17,8 +17,10 @@ public class Recommendation implements Serializable{
     private Album album;
     @ManyToOne
     private User user;
+    private Liked liked;
 
     public Recommendation() {
+        this.liked = Liked.NOT_RATED;
     }
 
     public Album getAlbum() {

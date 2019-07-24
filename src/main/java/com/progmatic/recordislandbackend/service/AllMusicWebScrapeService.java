@@ -1,13 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.progmatic.recordislandbackend.service;
 
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.Artist;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import org.jsoup.Jsoup;
@@ -28,7 +22,6 @@ public class AllMusicWebScrapeService {
         HashSet<Album> releases = new HashSet<>();
         try {
             final Document document = Jsoup.connect(url).maxBodySize(0).get();
-//                    System.out.println(document.outerHtml());
             Elements rows = document.select(
                     "table.nr-table tbody tr");
             for (Element row : rows) {
@@ -40,14 +33,28 @@ public class AllMusicWebScrapeService {
                         Album album = new Album();
                         album.setArtist(new Artist(row.select("td:nth-of-type(1)").text()));
                         album.setTitle(row.select("td:nth-of-type(2)").text());
+                        album.setImg(getAlbumImgLink(row.select("td:nth-of-type(2)").select("a").attr("href")));
                         releases.add(album);
                     }
                 }
             }
-//            System.out.println(releases.size());
         } catch (Exception ex) {
             ex.printStackTrace();
         }
         return releases;
+    }
+
+    private String getAlbumImgLink(String url) {
+        String imgLink = "";
+        try {
+            System.out.println(url);
+            final Document document = Jsoup.connect(url).maxBodySize(0).get();
+            Element div = document.select("div [class=album-contain]").first();
+            Element img = div.select("img").first();
+            imgLink = img.attr("src");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return imgLink;
     }
 }

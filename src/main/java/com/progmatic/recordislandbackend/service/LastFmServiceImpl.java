@@ -21,6 +21,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -72,7 +73,7 @@ public class LastFmServiceImpl {
 
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .scheme("https").host("ws.audioscrobbler.com")
-                .path("/2.0/").queryParam("method", "artist.getsimilar").queryParam("artist", name)
+                .path("/2.0/").queryParam("method", "artist.getsimilar").queryParam("artist", name).queryParam("autocorrect", "1")
                 .queryParam("api_key", properties.getLastFmApiKey()).queryParam("format", "json").build();
         System.out.println(uriComponents.toUriString());
         HttpEntity request = new HttpEntity(requestHeaders);
@@ -136,7 +137,7 @@ public class LastFmServiceImpl {
         TopArtistsWrapperDTO topartists = response.getBody();
         return topartists.getTopartists().getArtist().stream().map(a -> a.getName()).collect(Collectors.toList());
     }
-
+    
     @Transactional
     public void saveLastFmHistory(List<String> artists) {
         artists.stream().forEachOrdered((artistName) -> {
@@ -152,6 +153,25 @@ public class LastFmServiceImpl {
                 em.persist(user);
             }
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            User user = (User) userService.loadUserByUsername(username);
+            user.getLikedArtists().add(artist);
+            em.persist(user);
+        });
+    }
+    
+    @Transactional
+    public void saveLastFmHistory(List<String> artists, String username) {
+        artists.stream().forEachOrdered((artistName) -> {
+            Artist artist;
+            try {
+                artist = em.createQuery("SELECT a FROM Artist a WHERE a.name = :artistName", Artist.class).setParameter("artistName", artistName).getSingleResult();
+            } catch (NoResultException ex) {
+                artist = new Artist(artistName);
+                em.persist(artist);
+                User user = (User) userService.loadUserByUsername(username);
+                user.getLikedArtists().add(artist);
+                em.persist(user);
+            }
             User user = (User) userService.loadUserByUsername(username);
             user.getLikedArtists().add(artist);
             em.persist(user);

@@ -14,12 +14,10 @@ import com.progmatic.recordislandbackend.service.LastFmServiceImpl;
 import com.progmatic.recordislandbackend.service.UserService;
 import java.util.HashSet;
 import java.util.Set;
-;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
-import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +41,7 @@ public class DataBaseInitializer {
     @Autowired
     private ArtistService artistService;
 
-    Logger logger = LoggerFactory.getLogger(DataBaseInitializer.class);
+    private Logger logger = LoggerFactory.getLogger(DataBaseInitializer.class);
 
     @Transactional
     public void init() throws AlreadyExistsException {
@@ -52,7 +50,9 @@ public class DataBaseInitializer {
             em.persist(new Authority("ROLE_ADMIN"));
             em.flush();
             RegistrationDto registration = new RegistrationDto("admin", "admin", "admin@recordisland.com");
-            userService.createUser(registration);
+            registration.setLastFmUsername("life_is_fun");
+            registration.setSpotifyUserName("");
+            userService.createUser(registration, true);
         }
     }
 

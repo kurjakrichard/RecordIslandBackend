@@ -7,7 +7,6 @@ import com.progmatic.recordislandbackend.domain.User_;
 import com.progmatic.recordislandbackend.dto.RegistrationDto;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.UserNotFoundException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
@@ -19,6 +18,7 @@ import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import static org.hibernate.jpa.QueryHints.HINT_LOADGRAPH;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -38,12 +38,13 @@ public class UserService implements UserDetailsService {
     private EntityManager em;
 
     private PasswordEncoder passwordEncoder;
+    private LastFmServiceImpl lastFmService;
 
     @Autowired
-    public UserService(PasswordEncoder passwordEncoder) {
+    public UserService(PasswordEncoder passwordEncoder, @Lazy LastFmServiceImpl lastFmService) {
         this.passwordEncoder = passwordEncoder;
+        this.lastFmService = lastFmService;
     }
-    
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -60,11 +61,16 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public void createUser(RegistrationDto registration) throws AlreadyExistsException {
+    public void createUser(RegistrationDto registration, boolean isAdmin) throws AlreadyExistsException {
         if (userExists(registration.getUsername())) {
             throw new AlreadyExistsException(registration.getUsername() + " is already exists!");
         }
-        Authority authority = getAuthorityByName("ROLE_USER");
+        Authority authority;
+        if (isAdmin) {
+            authority = getAuthorityByName("ROLE_ADMIN");
+        } else {
+            authority = getAuthorityByName("ROLE_USER");
+        }
         User user = new User(registration.getUsername(), passwordEncoder.encode(registration.getPassword()),
                 registration.getEmail(), registration.getLastFmUsername(), registration.getSpotifyUserName());
         user.addAuthority(authority);
@@ -92,7 +98,7 @@ public class UserService implements UserDetailsService {
                 .getSingleResult();
         user.setLastLoginDate(LocalDateTime.now());
     }
-    
+
     @org.springframework.transaction.annotation.Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public User findUserById(int id) throws UserNotFoundException {
         try {
@@ -106,7 +112,7 @@ public class UserService implements UserDetailsService {
             throw new UserNotFoundException("User with id " + id + " cannot be found!");
         }
     }
-    
+
     @org.springframework.transaction.annotation.Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public User findUserByName(String name) throws UserNotFoundException {
         try {
@@ -120,11 +126,18 @@ public class UserService implements UserDetailsService {
             throw new UserNotFoundException("User with name " + name + " cannot be found!");
         }
     }
-    
+
     public User getLoggedInUser() throws UserNotFoundException {
         User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User dbUser = findUserByName(loggedInUser.getUsername());
         return dbUser;
+    }
+    
+    @Transactional
+    public void addUsersLastFmHistory(RegistrationDto registration) {
+        if (null != registration.getLastFmUsername() && !registration.getLastFmUsername().isEmpty()) {
+            lastFmService.saveLastFmHistory(lastFmService.getLastFmHistory(registration.getLastFmUsername()), registration.getUsername());
+        }
     }
 
 }
