@@ -18,6 +18,7 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 
 /**
@@ -97,8 +98,8 @@ public class RecommendationsServiceImpl {
 
     }
     
-    public List<AlbumResponseDto> getAllmusicRecommendationsFromDb() throws LastFmException {
-        User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public List<AlbumResponseDto> getAllmusicRecommendationsFromDb() throws LastFmException, UserNotFoundException {
+        User loggedInUser = userService.getLoggedInUser();
         ArrayList<AlbumResponseDto> resultList = new ArrayList<>();
         List<Album> allmusicAlbums = albumService.getAllAlbumsFromDb();
 
@@ -122,6 +123,7 @@ public class RecommendationsServiceImpl {
             if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
                     || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
                 resultList.add(AlbumResponseDto.from(album));
+                addAlbumToAlbumRecommendationsOfLoggedInUser(album);
             }
         }
         return resultList;
@@ -131,8 +133,22 @@ public class RecommendationsServiceImpl {
     @Transactional
     @PatchMapping
     public void updateUserLikedArtists(Artist artist) throws UserNotFoundException {
-        User dbUser = userService.getLoggedInUser();
-        dbUser.addArtistToLikedArtists(artist);
+        userService.getLoggedInUser().addArtistToLikedArtists(artist);
     }
+    
+    @Transactional
+    @PatchMapping
+    public void addAlbumToAlbumRecommendationsOfLoggedInUser(Album album) throws UserNotFoundException {
+        userService.getLoggedInUser().addAlbumToAlbumRecommendations(album);
+    }
+    
+    @Transactional
+    @DeleteMapping
+    public void removeAlbumFromAlbumRecommendationsOfLoggedinUser(Album album) throws UserNotFoundException {
+        userService.getLoggedInUser().removeAlbumFromAlbumRecommendations(album);
+    }
+    
+    
+    
 
 }

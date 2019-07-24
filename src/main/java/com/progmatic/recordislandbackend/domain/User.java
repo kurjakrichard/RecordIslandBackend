@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -46,6 +47,8 @@ public class User implements UserDetails {
     private List<Recommendation> recommendations;
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Artist> likedArtists;
+    @ManyToMany(fetch = FetchType.EAGER)
+    private Set<Album> albumRecommendations = new HashSet<>();
     private String lastFmAccountName;
     private String spotifyAccountName;
 
@@ -194,4 +197,26 @@ public class User implements UserDetails {
     public void setSpotifyAccountName(String spotifyAccountName) {
         this.spotifyAccountName = spotifyAccountName;
     }
+
+    public Set<Album> getAlbumRecommendations() {
+        return albumRecommendations;
+    }
+
+    public void setAlbumRecommendations(Set<Album> albumRecommendations) {
+        this.albumRecommendations = albumRecommendations;
+    }
+    
+    public void addAlbumToAlbumRecommendations(Album album) {
+        this.albumRecommendations.add(album);
+    }
+    
+    public void removeAlbumFromAlbumRecommendations(Album album) {
+        this.albumRecommendations.removeIf(alb -> alb.getTitle().equals(album.getTitle()));
+    }
+    
+    public Album getAlbumFromAlbumRecommendations(Album album) {
+        return this.albumRecommendations.stream().filter(alb -> alb.getTitle().equals(album.getTitle())).findFirst().get();
+    }
+    
+    
 }

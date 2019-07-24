@@ -3,6 +3,7 @@ package com.progmatic.recordislandbackend.controller;
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.dto.AlbumResponseDto;
 import com.progmatic.recordislandbackend.exception.LastFmException;
+import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import com.progmatic.recordislandbackend.service.RecommendationsServiceImpl;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +31,7 @@ public class RecommendationsController {
     }
     
     @GetMapping(value = {"/api/allmusicRecommendation"})
-    public List<AlbumResponseDto> getUserRecommendationsFromAllmusic() throws LastFmException {
+    public List<AlbumResponseDto> getUserRecommendationsFromAllmusic() throws LastFmException, UserNotFoundException {
         return recommendationsService.getAllmusicRecommendationsFromDb();
     }
     
