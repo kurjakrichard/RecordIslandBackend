@@ -3,6 +3,7 @@ package com.progmatic.recordislandbackend.service;
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.dto.AlbumControllerDto;
+import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.ArtistNotExistsExeption;
 import com.progmatic.recordislandbackend.repository.AlbumRepository;
@@ -74,6 +75,13 @@ public class AlbumService {
         Album album = em.createQuery("SELECT u FROM Album u WHERE u.title = :title AND u.artist.name = :artist", Album.class)
                 .setParameter("title", title)
                 .setParameter("artist", artist)
+                .getSingleResult();
+        return album;
+    }
+    
+    public Album findAlbumById(int id) throws AlbumNotExistsException {
+        Album album = em.createQuery("SELECT a FROM Album a WHERE a.id = :id", Album.class)
+                .setParameter("id", id)
                 .getSingleResult();
         return album;
     }

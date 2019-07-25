@@ -133,6 +133,16 @@ public class UserService implements UserDetailsService {
         return dbUser;
     }
     
+    public User getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists() throws UserNotFoundException {
+        User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        EntityGraph eg = em.createEntityGraph("userWithAlbumRecommendationsAndLikedArtistsAndDislikedArtists");
+        User dbUser = em.createQuery("SELECT u FROM User u WHERE u.username = :name", User.class)
+                .setParameter("name", loggedInUser.getUsername())
+                .setHint(HINT_LOADGRAPH, eg)
+                .getSingleResult();
+        return dbUser;
+    }
+    
     @Transactional
     public void addUsersLastFmHistory(RegistrationDto registration) {
         if (null != registration.getLastFmUsername() && !registration.getLastFmUsername().isEmpty()) {
