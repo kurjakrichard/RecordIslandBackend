@@ -15,6 +15,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
 import javax.persistence.NamedEntityGraphs;
+import javax.persistence.NamedSubgraph;
 import javax.persistence.OneToMany;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,8 +27,17 @@ import org.springframework.security.core.userdetails.UserDetails;
             name = "userWithAuthorities",
             attributeNodes = {
                 @NamedAttributeNode(value = "authorities")
-            })
-})
+            }),
+    @NamedEntityGraph(
+            name = "userWithAlbumRecommendationsAndLikedArtistsAndDislikedArtists",
+            attributeNodes = {
+                @NamedAttributeNode(value = "albumRecommendations", subgraph = "album.artist"),
+                    @NamedAttributeNode(value = "likedArtists"),
+                    @NamedAttributeNode(value = "dislikedArtists")
+            },
+            subgraphs = @NamedSubgraph(name = "album.artist",
+                    attributeNodes = @NamedAttributeNode(value = "artist"))
+    )})
 public class User implements UserDetails {
 
     @Id
@@ -45,17 +55,17 @@ public class User implements UserDetails {
     private List<AlbumRating> albumRatings;
     @OneToMany(mappedBy = "user")
     private List<Recommendation> recommendations;
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany
     private Set<Artist> likedArtists;
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany
     private Set<Artist> dislikedArtists;
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany
     private Set<Album> albumRecommendations = new HashSet<>();
     private String lastFmAccountName;
     private String spotifyAccountName;
 
     public User() {
-        
+
     }
 
     public User(String username, String password, String email) {
@@ -207,15 +217,15 @@ public class User implements UserDetails {
     public void setAlbumRecommendations(Set<Album> albumRecommendations) {
         this.albumRecommendations = albumRecommendations;
     }
-    
+
     public void addAlbumToAlbumRecommendations(Album album) {
         this.albumRecommendations.add(album);
     }
-    
+
     public void removeAlbumFromAlbumRecommendations(Album album) {
         this.albumRecommendations.removeIf(alb -> alb.getTitle().equals(album.getTitle()));
     }
-    
+
     public Album getAlbumFromAlbumRecommendations(Album album) {
         return this.albumRecommendations.stream().filter(alb -> alb.getTitle().equals(album.getTitle())).findFirst().get();
     }
@@ -227,7 +237,7 @@ public class User implements UserDetails {
     public void setDislikedArtists(Set<Artist> dislikedArtists) {
         this.dislikedArtists = dislikedArtists;
     }
-    
+
     public void addArtistToDislikedArtists(Artist artist) {
         this.dislikedArtists.add(artist);
     }

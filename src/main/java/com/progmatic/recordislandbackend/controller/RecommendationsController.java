@@ -1,18 +1,22 @@
 package com.progmatic.recordislandbackend.controller;
 
 import com.progmatic.recordislandbackend.domain.Album;
-import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.dto.AlbumResponseDto;
+import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
 import com.progmatic.recordislandbackend.exception.LastFmException;
 import com.progmatic.recordislandbackend.exception.UserNotFoundException;
+import com.progmatic.recordislandbackend.service.AlbumService;
+import com.progmatic.recordislandbackend.service.ArtistService;
 import com.progmatic.recordislandbackend.service.RecommendationsServiceImpl;
 import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -23,10 +27,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecommendationsController {
     
     private final RecommendationsServiceImpl recommendationsService;
+    private final ArtistService artistService;
+    private final AlbumService albumService;
     
     @Autowired
-    public RecommendationsController(RecommendationsServiceImpl recommendationsService) {
+    public RecommendationsController(RecommendationsServiceImpl recommendationsService, ArtistService artistService,
+            AlbumService albumService) {
         this.recommendationsService = recommendationsService;
+        this.artistService = artistService;
+        this.albumService = albumService;
     }
     
     @GetMapping(value = {"/api/discogsRecommendation"})
@@ -39,29 +48,28 @@ public class RecommendationsController {
         return recommendationsService.getAllmusicRecommendationsFromDb();
     }
     
-    @PatchMapping(value = {"/api/userLikedArtists"})
-    public void updateUsersLikedArtistsOfLoggedInUser(Artist artist) throws UserNotFoundException {
-        recommendationsService.addArtistToLikedArtistsOfLoggedInUser(artist);
+    
+    
+    @PostMapping(value = {"/api/userAlbumRecommendations/{id}"})
+    public void handlePositiveFeedback(@PathVariable int id) throws UserNotFoundException, AlbumNotExistsException {
+        Album album = albumService.findAlbumById(id);
+        recommendationsService.addArtistToLikedArtistsOfLoggedInUser(album.getArtist());
+        recommendationsService.removeAlbumFromAlbumRecommendationsOfLoggedinUser(album);
     }
     
-    @PatchMapping(value = {"/api/userAlbumRecommendations"})
-    public void addAlbumToAlbumRecommendationsOfLoggedInUser(Album album) throws UserNotFoundException {
-        recommendationsService.addAlbumToAlbumRecommendationsOfLoggedInUser(album);
+    @DeleteMapping(value = {"/api/userAlbumRecommendations/{id}"})
+    public void handleNegativeFeedback(@PathVariable int id) throws UserNotFoundException, AlbumNotExistsException {
+        Album album = albumService.findAlbumById(id);
+        recommendationsService.addArtistToUsersDislikedArtists(album.getArtist());
+        recommendationsService.removeAlbumFromAlbumRecommendationsOfLoggedinUser(album);
     }
     
-//    @DeleteMapping(value = {"/api/userAlbumRecommendations"})
-//    public void removeAlbumFromAlbumRecommendationsOfLoggedinUser(Album album) throws UserNotFoundException {
-//        recommendationsService.removeAlbumFromAlbumRecommendationsOfLoggedinUser(album);
-//    }
-    
-    @PatchMapping(value = {"/api/userDislikedArtists"})
-    public void addArtistToDislikedArtistsOfLoggedInUser(Artist artist) throws UserNotFoundException {
-        recommendationsService.addArtistToUsersDislikedArtists(artist);
-    }
     
     @GetMapping(value = {"/api/userAlbumRecommendations"})
-    public Set<Album> getAlbumRecommendationsOfLoggedInUser() throws UserNotFoundException {
+    public @ResponseBody Set<AlbumResponseDto> getAlbumRecommendationsOfLoggedInUser() throws UserNotFoundException, LastFmException {
         return recommendationsService.getRecommendationsOfLoggedInUser();
     }
+    
+    
     
 }

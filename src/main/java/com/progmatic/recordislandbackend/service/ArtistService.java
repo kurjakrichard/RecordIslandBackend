@@ -7,10 +7,10 @@ package com.progmatic.recordislandbackend.service;
 
 import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.domain.Artist_;
+import com.progmatic.recordislandbackend.exception.ArtistNotExistsExeption;
 import com.progmatic.recordislandbackend.exception.LastFmException;
 import com.progmatic.recordislandbackend.exception.NoSimilarArtistsException;
 import com.progmatic.recordislandbackend.exception.UserNotFoundException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -53,13 +53,13 @@ public class ArtistService {
 //        return similarArtists;
 //    }
     @Transactional
-    public void addSimilarArtistsToArtist(String name, Set<Artist> artistSet) throws LastFmException, UserNotFoundException {
+    public void addSimilarArtistsToArtist(String name, Set<Artist> artistSet) throws LastFmException, ArtistNotExistsExeption {
         Artist artist = findArtistByName(name);
         artist.setSimilarArtists(artistSet);
     }
 
     @org.springframework.transaction.annotation.Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    public Artist findArtistByName(String name) throws UserNotFoundException {
+    public Artist findArtistByName(String name) throws ArtistNotExistsExeption {
         try {
             CriteriaBuilder cb = em.getCriteriaBuilder();
             CriteriaQuery<Artist> cQuery = cb.createQuery(Artist.class);
@@ -68,7 +68,21 @@ public class ArtistService {
 
             return em.createQuery(cQuery).getSingleResult();
         } catch (NoResultException ex) {
-            throw new UserNotFoundException("User with name " + name + " cannot be found!");
+            throw new ArtistNotExistsExeption("User with name " + name + " cannot be found!");
+        }
+    }
+    
+    @org.springframework.transaction.annotation.Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    public Artist findArtistById(int id) throws ArtistNotExistsExeption {
+        try {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Artist> cQuery = cb.createQuery(Artist.class);
+            Root<Artist> a = cQuery.from(Artist.class);
+            cQuery.select(a).where(cb.equal(a.get(Artist_.id), id));
+
+            return em.createQuery(cQuery).getSingleResult();
+        } catch (NoResultException ex) {
+            throw new ArtistNotExistsExeption("Artist with name " + id + " cannot be found!");
         }
     }
     
