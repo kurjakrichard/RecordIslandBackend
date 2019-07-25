@@ -132,22 +132,30 @@ public class RecommendationsServiceImpl {
 
     @Transactional
     public void addArtistToLikedArtistsOfLoggedInUser(Artist artist) throws UserNotFoundException {
-        userService.getLoggedInUserForTransactions().addArtistToLikedArtists(artist);
+        User loggedInUser = userService.getLoggedInUserForTransactions();
+        loggedInUser.addArtistToLikedArtists(artist);
+        em.persist(loggedInUser);
     }
     
     @Transactional
     public void addAlbumToAlbumRecommendationsOfLoggedInUser(Album album) throws UserNotFoundException {
-        userService.getLoggedInUserForTransactions().addAlbumToAlbumRecommendations(album);
+        User loggedInUser = userService.getLoggedInUserForTransactions();
+        loggedInUser.addAlbumToAlbumRecommendations(album);
+        em.persist(loggedInUser);
     }
     
     @Transactional
     public void removeAlbumFromAlbumRecommendationsOfLoggedinUser(Album album) throws UserNotFoundException {
-        userService.getLoggedInUserForTransactions().removeAlbumFromAlbumRecommendations(album);
+        User loggedInUser = userService.getLoggedInUserForTransactions();
+        loggedInUser.removeAlbumFromAlbumRecommendations(album);
+        em.persist(loggedInUser);
     }
     
     @Transactional
     public void addArtistToUsersDislikedArtists(Artist artist) throws UserNotFoundException {
-        userService.getLoggedInUserForTransactions().addArtistToDislikedArtists(artist);
+        User loggedInUser = userService.getLoggedInUserForTransactions();
+        loggedInUser.addArtistToDislikedArtists(artist);
+        em.persist(loggedInUser);
     }
     
     public Set<Album> getRecommendationsOfLoggedInUser() throws UserNotFoundException{
