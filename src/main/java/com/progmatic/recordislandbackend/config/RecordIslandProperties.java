@@ -10,6 +10,8 @@ public class RecordIslandProperties {
     private String lastFmApiKey = "";
     private String discogsApiKey = "";
     private String discogsSecretkey = "";
+    private String spotifyClientId = "";
+    private String spotifyClientSecret = "";
 
     public RecordIslandProperties() {
     }
@@ -26,6 +28,14 @@ public class RecordIslandProperties {
         return discogsSecretkey;
     }
 
+    public String getSpotifyClientId() {
+        return spotifyClientId;
+    }
+
+    public String getSpotifyClientSecret() {
+        return spotifyClientSecret;
+    }
+    
     public void setLastFmApiKey(String lastFmApiKey) {
         this.lastFmApiKey = lastFmApiKey;
     }
@@ -36,5 +46,13 @@ public class RecordIslandProperties {
 
     public void setDiscogsSecretkey(String discogsSecretkey) {
         this.discogsSecretkey = discogsSecretkey;
+    }
+
+    public void setSpotifyClientId(String spotifyClientId) {
+        this.spotifyClientId = spotifyClientId;
+    }
+
+    public void setSpotifyClientSecret(String spotifyClientSecret) {
+        this.spotifyClientSecret = spotifyClientSecret;
     }
 }
