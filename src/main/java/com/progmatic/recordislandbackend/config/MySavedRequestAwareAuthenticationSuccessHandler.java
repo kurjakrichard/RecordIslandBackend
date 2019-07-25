@@ -1,13 +1,17 @@
 package com.progmatic.recordislandbackend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import com.progmatic.recordislandbackend.service.UserService;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -23,6 +27,8 @@ public class MySavedRequestAwareAuthenticationSuccessHandler
         extends SimpleUrlAuthenticationSuccessHandler {
 
     private RequestCache requestCache = new HttpSessionRequestCache();
+    private Logger logger = LoggerFactory.getLogger(MySavedRequestAwareAuthenticationSuccessHandler.class);
+    
     
     @Autowired
     UserService userService;
@@ -41,8 +47,12 @@ public class MySavedRequestAwareAuthenticationSuccessHandler
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         
         userNameResponse.put("username", authentication.getName());
-        
-        userService.updateLastLoginDate(authentication.getName());
+       
+        try {
+            userService.updateLastLoginDate(authentication.getName());
+        } catch (UserNotFoundException ex) {
+            logger.error(ex.getMessage());
+        }
         
         response.getWriter().write(objectMapper.writeValueAsString(userNameResponse));
         response.getWriter().flush();

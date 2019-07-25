@@ -1,22 +1,20 @@
 package com.progmatic.recordislandbackend.service;
 
-import com.progmatic.recordislandbackend.domain.Album;
+import com.progmatic.recordislandbackend.dao.AuthorityRepository;
+import com.progmatic.recordislandbackend.dao.UserRepository;
+import com.progmatic.recordislandbackend.dao.VerificationTokenRepository;
 import com.progmatic.recordislandbackend.domain.Authority;
 import com.progmatic.recordislandbackend.domain.User;
-import com.progmatic.recordislandbackend.domain.User_;
+import com.progmatic.recordislandbackend.domain.VerificationToken;
 import com.progmatic.recordislandbackend.dto.RegistrationDto;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.UserNotFoundException;
+import com.progmatic.recordislandbackend.exception.VerificationTokenNotFoundException;
 import java.time.LocalDateTime;
-import javax.persistence.EntityGraph;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import java.util.Calendar;
+import java.util.NoSuchElementException;
+import java.util.UUID;
 import javax.transaction.Transactional;
-import static org.hibernate.jpa.QueryHints.HINT_LOADGRAPH;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,7 +23,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 
 /**
  *
@@ -34,38 +31,40 @@ import org.springframework.transaction.annotation.Isolation;
 @Service
 public class UserService implements UserDetailsService {
 
-    @PersistenceContext
-    private EntityManager em;
+    private final AuthorityRepository authorityRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final LastFmServiceImpl lastFmService;
+    private final VerificationTokenRepository verificationTokenRepository;
 
-    private PasswordEncoder passwordEncoder;
-    private LastFmServiceImpl lastFmService;
+    public static final String TOKEN_INVALID = "invalidToken";
+    public static final String TOKEN_EXPIRED = "expired";
+    public static final String TOKEN_VALID = "valid";
 
     @Autowired
-    public UserService(PasswordEncoder passwordEncoder, @Lazy LastFmServiceImpl lastFmService) {
+    public UserService(AuthorityRepository authorityRepository,
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            @Lazy LastFmServiceImpl lastFmService,
+            VerificationTokenRepository verificationTokenRepository) {
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.lastFmService = lastFmService;
+        this.verificationTokenRepository = verificationTokenRepository;
+        this.authorityRepository = authorityRepository;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        try {
-            EntityGraph eg = em.getEntityGraph("userWithAuthorities");
-            User user = em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
-                    .setParameter("username", username)
-                    .setHint(HINT_LOADGRAPH, eg)
-                    .getSingleResult();
-            return user;
-        } catch (NoResultException e) {
-            throw new UsernameNotFoundException(username);
-        }
+        return userRepository.getUserWithAuthoritiesByUsername(username);
     }
 
     @Transactional
-    public void createUser(RegistrationDto registration, boolean isAdmin) throws AlreadyExistsException {
+    public User createUser(RegistrationDto registration, boolean isAdmin) throws AlreadyExistsException {
         if (userExists(registration.getUsername())) {
             throw new AlreadyExistsException(registration.getUsername() + " is already exists!");
         }
-        Authority authority;
+        Authority authority; // TODO: check if it is in authorities if yes, select from db else create;
         if (isAdmin) {
             authority = getAuthorityByName("ROLE_ADMIN");
         } else {
@@ -74,57 +73,33 @@ public class UserService implements UserDetailsService {
         User user = new User(registration.getUsername(), passwordEncoder.encode(registration.getPassword()),
                 registration.getEmail(), registration.getLastFmUsername(), registration.getSpotifyUsername());
         user.addAuthority(authority);
-        em.persist(user);
+        userRepository.save(user);
+        return user;
     }
 
     public boolean userExists(String username) {
-        Long num = em.createQuery("SELECT COUNT(u) FROM User u WHERE u.username = :username", Long.class)
-                .setParameter("username", username)
-                .getSingleResult();
-
-        return num == 1;
+        return userRepository.existsByUsername(username);
     }
 
     public Authority getAuthorityByName(String name) {
-        return em.createQuery("SELECT a FROM Authority a WHERE a.name = :name", Authority.class)
-                .setParameter("name", name)
-                .getSingleResult();
+        return authorityRepository.findByName(name);
     }
 
     @Transactional
-    public void updateLastLoginDate(String username) {
-        User user = em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
-                .setParameter("username", username)
-                .getSingleResult();
+    public void updateLastLoginDate(String username) throws UserNotFoundException {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("User not found! [ " + username + " ]"));
         user.setLastLoginDate(LocalDateTime.now());
+        userRepository.save(user);
     }
 
-    @org.springframework.transaction.annotation.Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public User findUserById(int id) throws UserNotFoundException {
-        try {
-            CriteriaBuilder cb = em.getCriteriaBuilder();
-            CriteriaQuery<User> cQuery = cb.createQuery(User.class);
-            Root<User> u = cQuery.from(User.class);
-            cQuery.select(u).where(cb.equal(u.get(User_.id), id));
-
-            return em.createQuery(cQuery).getSingleResult();
-        } catch (NoResultException ex) {
-            throw new UserNotFoundException("User with id " + id + " cannot be found!");
-        }
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found with id( " + id + " )!"));
+        return user;
     }
 
-    @org.springframework.transaction.annotation.Transactional(isolation = Isolation.READ_UNCOMMITTED)
-    public User findUserByName(String name) throws UserNotFoundException {
-        try {
-            CriteriaBuilder cb = em.getCriteriaBuilder();
-            CriteriaQuery<User> cQuery = cb.createQuery(User.class);
-            Root<User> u = cQuery.from(User.class);
-            cQuery.select(u).where(cb.equal(u.get(User_.username), name));
-
-            return em.createQuery(cQuery).getSingleResult();
-        } catch (NoResultException ex) {
-            throw new UserNotFoundException("User with name " + name + " cannot be found!");
-        }
+    public User findUserByName(String username) throws UserNotFoundException {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("User not found! [ " + username + " ]"));
+        return user;
     }
 
     public User getLoggedInUserForTransactions() throws UserNotFoundException {
@@ -132,6 +107,7 @@ public class UserService implements UserDetailsService {
         User dbUser = findUserByName(loggedInUser.getUsername());
         return dbUser;
     }
+<<<<<<< Updated upstream
     
     public User getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists() throws UserNotFoundException {
         User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -150,4 +126,51 @@ public class UserService implements UserDetailsService {
         }
     }
 
+    public User getUserFromVerificationToken(final String verificationToken) throws VerificationTokenNotFoundException {
+        final VerificationToken token = verificationTokenRepository.findByToken(verificationToken)
+                .orElseThrow(() -> new VerificationTokenNotFoundException("Verification token not found!"));
+        return token.getUser();
+    }
+
+    public void createVerificationTokenForUser(final User user, final String token) {
+        final VerificationToken myToken = new VerificationToken(token, user);
+        verificationTokenRepository.save(myToken);
+    }
+
+    public VerificationToken getVerificationToken(final String VerificationToken) throws VerificationTokenNotFoundException {
+        VerificationToken token = verificationTokenRepository.findByToken(VerificationToken)
+                .orElseThrow(() -> new VerificationTokenNotFoundException("Verification token not found!"));
+        return token;
+    }
+
+    public VerificationToken generateNewVerificationToken(final String existingVerificationToken) throws VerificationTokenNotFoundException {
+        VerificationToken vToken = verificationTokenRepository.findByToken(existingVerificationToken)
+                .orElseThrow(() -> new VerificationTokenNotFoundException("Verification token not found!"));
+        vToken.updateToken(UUID.randomUUID().toString());
+        vToken = verificationTokenRepository.save(vToken);
+        return vToken;
+    }
+
+    public String validateVerificationToken(String token) {
+        final VerificationToken verificationToken; 
+        try {
+            verificationToken = verificationTokenRepository.findByToken(token).get();
+        } catch (NoSuchElementException ex) {
+            return TOKEN_INVALID;
+        }
+
+        final User user = verificationToken.getUser();
+        final Calendar cal = Calendar.getInstance();
+        if ((verificationToken.getExpiryDate()
+                .getTime()
+                - cal.getTime()
+                        .getTime()) <= 0) {
+            verificationTokenRepository.delete(verificationToken);
+            return TOKEN_EXPIRED;
+        }
+        user.setEnabled(true);
+        verificationTokenRepository.delete(verificationToken);
+        userRepository.save(user);
+        return TOKEN_VALID;
+    }
 }

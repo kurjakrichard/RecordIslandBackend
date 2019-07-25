@@ -4,9 +4,9 @@ package com.progmatic.recordislandbackend.exception;
  *
  * @author balza
  */
-public class AlbumNotExistsException extends Exception {
+public class ArtistNotExistsException extends Exception {
 
-    public AlbumNotExistsException(String message) {
+    public ArtistNotExistsException(String message) {
         super(message);
     }
     

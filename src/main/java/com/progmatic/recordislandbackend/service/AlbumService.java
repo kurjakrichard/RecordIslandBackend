@@ -5,7 +5,7 @@ import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.dto.AlbumControllerDto;
 import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
-import com.progmatic.recordislandbackend.exception.ArtistNotExistsExeption;
+import com.progmatic.recordislandbackend.exception.ArtistNotExistsException;
 import com.progmatic.recordislandbackend.repository.AlbumRepository;
 import java.util.List;
 import javax.persistence.EntityGraph;
@@ -35,7 +35,7 @@ public class AlbumService {
     
 
     @Transactional
-    public void createAlbum(AlbumControllerDto albumDto) throws AlreadyExistsException, ArtistNotExistsExeption {
+    public void createAlbum(AlbumControllerDto albumDto) throws AlreadyExistsException, ArtistNotExistsException {
 
         String name = albumDto.getArtistName();
         if (albumExists(albumDto.getTitle(), albumDto.getArtistName())) {
@@ -43,7 +43,7 @@ public class AlbumService {
         }
 
         if (!artistExists(albumDto.getArtistName())) {
-            throw new ArtistNotExistsExeption(albumDto.getArtistName());
+            throw new ArtistNotExistsException(albumDto.getArtistName());
         }
         Artist artist = em.createQuery("SELECT a FROM Artist a WHERE a.name = :name", Artist.class)
                 .setParameter("name", name)

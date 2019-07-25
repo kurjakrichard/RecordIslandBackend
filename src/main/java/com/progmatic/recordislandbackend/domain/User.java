@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.persistence.Column;
 import java.util.stream.Collectors;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -46,6 +47,8 @@ public class User implements UserDetails {
     private String email;
     private String username;
     private String password;
+    @Column(name = "enabled")
+    private boolean enabled;
     private LocalDateTime lastLoginDate;
     @CreationTimestamp
     private LocalDateTime createDate;
@@ -65,7 +68,7 @@ public class User implements UserDetails {
     private String spotifyAccountName;
 
     public User() {
-
+        this.enabled = false;
     }
 
     public User(String username, String password, String email) {
@@ -74,6 +77,7 @@ public class User implements UserDetails {
         this.email = email;
         this.lastFmAccountName = "";
         this.spotifyAccountName = "";
+        this.enabled = false;
     }
 
     public User(String username, String password, String email, String lastFmAccountName, String spotifyAccountName) {
@@ -82,6 +86,7 @@ public class User implements UserDetails {
         this.email = email;
         this.lastFmAccountName = lastFmAccountName;
         this.spotifyAccountName = spotifyAccountName;
+        this.enabled = false;
     }
 
     public String getEmail() {
@@ -187,7 +192,11 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     public void addAuthority(Authority authority) {

@@ -58,5 +58,4 @@ public class AlbumResponseDto {
     public void setImg(String img) {
         this.img = img;
     }
-
 }

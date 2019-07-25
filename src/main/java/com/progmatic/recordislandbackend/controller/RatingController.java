@@ -8,7 +8,7 @@ package com.progmatic.recordislandbackend.controller;
 import com.progmatic.recordislandbackend.dto.AlbumRatingDto;
 import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
-import com.progmatic.recordislandbackend.exception.ArtistNotExistsExeption;
+import com.progmatic.recordislandbackend.exception.ArtistNotExistsException;
 import com.progmatic.recordislandbackend.service.AlbumRatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +31,7 @@ public class RatingController {
     }
     
     @PostMapping(path = "/createlike")
-    public ResponseEntity createLike(@RequestBody AlbumRatingDto albumRatingDto) throws ArtistNotExistsExeption, AlbumNotExistsException, AlreadyExistsException{
+    public ResponseEntity createLike(@RequestBody AlbumRatingDto albumRatingDto) throws ArtistNotExistsException, AlbumNotExistsException, AlreadyExistsException{
 
             albumRatingService.createLike(albumRatingDto);
             
@@ -39,7 +39,7 @@ public class RatingController {
     }
     
         @PostMapping(path = "/editlike")
-    public ResponseEntity editLike(@RequestBody AlbumRatingDto albumRatingDto) throws ArtistNotExistsExeption, AlbumNotExistsException {
+    public ResponseEntity editLike(@RequestBody AlbumRatingDto albumRatingDto) throws ArtistNotExistsException, AlbumNotExistsException {
 
             albumRatingService.editLike(albumRatingDto);
             

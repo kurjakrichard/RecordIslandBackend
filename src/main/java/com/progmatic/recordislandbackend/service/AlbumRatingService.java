@@ -11,7 +11,7 @@ import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.dto.AlbumRatingDto;
 import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
-import com.progmatic.recordislandbackend.exception.ArtistNotExistsExeption;
+import com.progmatic.recordislandbackend.exception.ArtistNotExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
@@ -38,14 +38,14 @@ public class AlbumRatingService {
     }
 
     @Transactional
-    public void createLike(AlbumRatingDto albumRatingDto) throws AlbumNotExistsException, ArtistNotExistsExeption, AlreadyExistsException {
+    public void createLike(AlbumRatingDto albumRatingDto) throws AlbumNotExistsException, ArtistNotExistsException, AlreadyExistsException {
 
         String title = albumRatingDto.getTitle();
         String artist = albumRatingDto.getArtistname();
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = (User) userService.loadUserByUsername(username);
         if (!albumService.artistExists(albumRatingDto.getArtistname())) {
-            throw new ArtistNotExistsExeption("The artist: " + albumRatingDto.getArtistname() + " not exist!");
+            throw new ArtistNotExistsException("The artist: " + albumRatingDto.getArtistname() + " not exist!");
         }
         if (!albumService.albumExists(albumRatingDto.getTitle(), albumRatingDto.getArtistname())) {
             throw new AlbumNotExistsException("The album: " + albumRatingDto.getTitle() + " not exist!");
@@ -65,14 +65,14 @@ public class AlbumRatingService {
     }
 
         @Transactional
-    public void editLike(AlbumRatingDto albumRatingDto) throws AlbumNotExistsException, ArtistNotExistsExeption {
+    public void editLike(AlbumRatingDto albumRatingDto) throws AlbumNotExistsException, ArtistNotExistsException {
 
         String title = albumRatingDto.getTitle();
         String artist = albumRatingDto.getArtistname();
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = (User) userService.loadUserByUsername(username);
         if (!albumService.artistExists(albumRatingDto.getArtistname())) {
-            throw new ArtistNotExistsExeption("The artist: " + albumRatingDto.getArtistname() + " not exist!");
+            throw new ArtistNotExistsException("The artist: " + albumRatingDto.getArtistname() + " not exist!");
         }
         if (!albumService.albumExists(albumRatingDto.getTitle(), albumRatingDto.getArtistname())) {
             throw new AlbumNotExistsException("The album: " + albumRatingDto.getTitle() + " not exist!");
