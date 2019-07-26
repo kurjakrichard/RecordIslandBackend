@@ -4,6 +4,7 @@ import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.dto.RegistrationDto;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.EmailSendingException;
+import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import com.progmatic.recordislandbackend.service.UserService;
 import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
@@ -56,7 +57,7 @@ public class UserController {
     }
 
     @PostMapping(path = "/deleteUser")
-    public ResponseEntity deleteUser (@Valid @RequestParam String username) {
+    public ResponseEntity deleteUser (@Valid @RequestParam String username) throws UserNotFoundException {
         userService.deleteUser(username);
         return ResponseEntity.ok().build();
     }
