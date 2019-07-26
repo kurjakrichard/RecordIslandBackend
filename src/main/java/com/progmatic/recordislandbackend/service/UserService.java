@@ -1,6 +1,5 @@
 package com.progmatic.recordislandbackend.service;
 
-import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.Authority;
 import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.domain.User_;
@@ -18,7 +17,7 @@ import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import static org.hibernate.jpa.QueryHints.HINT_LOADGRAPH;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -99,6 +98,14 @@ public class UserService implements UserDetailsService {
         user.setLastLoginDate(LocalDateTime.now());
     }
 
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteUser(String username) {
+        User user = em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
+                .setParameter("username", username)
+                .getSingleResult();
+        em.remove(user);
+    }
     @org.springframework.transaction.annotation.Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public User findUserById(int id) throws UserNotFoundException {
         try {

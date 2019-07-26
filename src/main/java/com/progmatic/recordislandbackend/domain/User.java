@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -41,9 +42,11 @@ public class User implements UserDetails {
     private LocalDateTime createDate;
     @ManyToMany
     private Set<Authority> authorities = new HashSet<>();
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = {
+        CascadeType.ALL })
     private List<AlbumRating> albumRatings;
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = {
+        CascadeType.ALL })
     private List<Recommendation> recommendations;
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Artist> likedArtists;
