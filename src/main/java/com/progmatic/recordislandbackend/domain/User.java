@@ -3,12 +3,9 @@ package com.progmatic.recordislandbackend.domain;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import javax.persistence.Column;
-import java.util.stream.Collectors;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -17,7 +14,6 @@ import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
 import javax.persistence.NamedEntityGraphs;
 import javax.persistence.NamedSubgraph;
-import javax.persistence.OneToMany;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,12 +24,15 @@ import org.springframework.security.core.userdetails.UserDetails;
             name = "userWithAuthorities",
             attributeNodes = {
                 @NamedAttributeNode(value = "authorities")
-            }),
+            })
+    ,
     @NamedEntityGraph(
             name = "userWithAlbumRecommendationsAndLikedArtistsAndDislikedArtists",
             attributeNodes = {
-                @NamedAttributeNode(value = "albumRecommendations", subgraph = "album.artist"),
-                    @NamedAttributeNode(value = "likedArtists"),
+                @NamedAttributeNode(value = "albumRecommendations", subgraph = "album.artist")
+                ,
+                    @NamedAttributeNode(value = "likedArtists")
+                ,
                     @NamedAttributeNode(value = "dislikedArtists")
             },
             subgraphs = @NamedSubgraph(name = "album.artist",
@@ -54,14 +53,10 @@ public class User implements UserDetails {
     private LocalDateTime createDate;
     @ManyToMany
     private Set<Authority> authorities = new HashSet<>();
-    @OneToMany(mappedBy = "user")
-    private List<AlbumRating> albumRatings;
-    @OneToMany(mappedBy = "user")
-    private List<Recommendation> recommendations;
     @ManyToMany
-    private Set<Artist> likedArtists;
+    private Set<Artist> likedArtists = new HashSet<>();
     @ManyToMany
-    private Set<Artist> dislikedArtists;
+    private Set<Artist> dislikedArtists = new HashSet<>();
     @ManyToMany
     private Set<Album> albumRecommendations = new HashSet<>();
     private String lastFmAccountName;
@@ -101,6 +96,7 @@ public class User implements UserDetails {
         this.username = username;
     }
 
+    @Override
     public String getPassword() {
         return password;
     }
@@ -132,22 +128,6 @@ public class User implements UserDetails {
 
     public void setAuthorities(Set<Authority> authorities) {
         this.authorities = authorities;
-    }
-
-    public List<AlbumRating> getAlbumRatings() {
-        return albumRatings;
-    }
-
-    public void setAlbumRatings(List<AlbumRating> albumRatings) {
-        this.albumRatings = albumRatings;
-    }
-
-    public List<Recommendation> getRecommendations() {
-        return recommendations;
-    }
-
-    public void setRecommendations(List<Recommendation> recommendations) {
-        this.recommendations = recommendations;
     }
 
     public int getId() {
@@ -229,6 +209,10 @@ public class User implements UserDetails {
 
     public void addAlbumToAlbumRecommendations(Album album) {
         this.albumRecommendations.add(album);
+    }
+
+    public void addAlbumsToAlbumRecommendations(Set<Album> albums) {
+        this.albumRecommendations.addAll(albums);
     }
 
     public void removeAlbumFromAlbumRecommendations(Album album) {

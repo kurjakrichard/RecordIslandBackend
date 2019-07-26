@@ -6,103 +6,64 @@ import com.progmatic.recordislandbackend.dto.AlbumControllerDto;
 import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.ArtistNotExistsException;
-import com.progmatic.recordislandbackend.repository.AlbumRepository;
+import com.progmatic.recordislandbackend.dao.AlbumRepository;
+import com.progmatic.recordislandbackend.dao.ArtistRepository;
 import java.util.List;
-import javax.persistence.EntityGraph;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- *
- * @author balza
- */
 @Service
 public class AlbumService {
 
-    @PersistenceContext
-    private EntityManager em;
-
-    private AlbumRepository albumRepository;
+    private final AlbumRepository albumRepository;
+    private final ArtistRepository artistRepository;
 
     @Autowired
-    public AlbumService(AlbumRepository albumRepository) {
+    public AlbumService(AlbumRepository albumRepository,
+            ArtistRepository artistRepository) {
         this.albumRepository = albumRepository;
+        this.artistRepository = artistRepository;
     }
     
-
     @Transactional
     public void createAlbum(AlbumControllerDto albumDto) throws AlreadyExistsException, ArtistNotExistsException {
 
-        String name = albumDto.getArtistName();
-        if (albumExists(albumDto.getTitle(), albumDto.getArtistName())) {
-            throw new AlreadyExistsException(albumDto.getTitle());
+        String artistName = albumDto.getArtistName();
+        String albumTitle = albumDto.getTitle();
+        if (albumExists(albumDto.getTitle(), artistName)) {
+            throw new AlreadyExistsException(albumTitle + " named album is already exists!");
         }
-
-        if (!artistExists(albumDto.getArtistName())) {
-            throw new ArtistNotExistsException(albumDto.getArtistName());
-        }
-        Artist artist = em.createQuery("SELECT a FROM Artist a WHERE a.name = :name", Artist.class)
-                .setParameter("name", name)
-                .getSingleResult();
-
-        Album album = new Album(albumDto.getTitle(), albumDto.getReleaseDate());
+        
+        Artist artist = artistRepository.findByName(artistName)
+                .orElseThrow(() -> new ArtistNotExistsException(artistName + "named artist does not exist in the database!"));
+        
+        Album album = new Album(albumTitle, albumDto.getReleaseDate());
         album.setArtist(artist);
-        em.persist(album);
+        albumRepository.save(album);
     }
 
     public boolean albumExists(String title, String artist) {
-        System.out.println(title + " " + artist);
-        Long num = em.createQuery("SELECT COUNT(u) FROM Album u WHERE u.title = :title AND u.artist.name = :artist", Long.class)
-                .setParameter("title", title)
-                .setParameter("artist", artist)
-                .getSingleResult();
-        return num == 1;
-    }
-
-    public boolean artistExists(String name) {
-        Long num = em.createQuery("SELECT COUNT(u) FROM Artist u WHERE u.name = :name", Long.class)
-                .setParameter("name", name)
-                .getSingleResult();
-
-        return num == 1;
+        return albumRepository.exists(title, artist);
     }
     
-    public Album albumById(String title, String artist){
-        Album album = em.createQuery("SELECT u FROM Album u WHERE u.title = :title AND u.artist.name = :artist", Album.class)
-                .setParameter("title", title)
-                .setParameter("artist", artist)
-                .getSingleResult();
+    public Album getAlbumByTitleAndArtist(String title, String artist) throws AlbumNotExistsException{
+        Album album = albumRepository.findByTitleAndArtist(title, artist)
+                .orElseThrow(() -> new AlbumNotExistsException("[" + title + " - " + artist + "] does not exist!"));
         return album;
     }
     
     public Album findAlbumById(int id) throws AlbumNotExistsException {
-        Album album = em.createQuery("SELECT a FROM Album a WHERE a.id = :id", Album.class)
-                .setParameter("id", id)
-                .getSingleResult();
+        Album album = albumRepository.findById(id)
+                .orElseThrow( () -> new AlbumNotExistsException((id + ", id album does not exist!")));
         return album;
     }
 
     public boolean hasAlbums() {
-        try{
-        if(em.createQuery("SELECT COUNT(a) FROM Album a", Long.class).getSingleResult() > Long.valueOf(0))
-            return true;
-        } catch(NoResultException ex){
-            return false;
-        }
-        return false;
+        return !albumRepository.findAll().isEmpty();
     }
     
-    public List<Album> getAllAlbumsFromDb() {
-        EntityGraph eg = em.createEntityGraph("albmsWithSimilarArtists");
-        return em.createQuery("SELECT alb FROM Album alb")
-                .setHint("javax.persistence.fetchgraph", eg)
-                .getResultList();
+    public List<Album> getAllAlbumsWithSimilarArtists() {
+        return albumRepository.findAllAlbumsWithSimilarArtists();
     }
-    
-    
-
 }

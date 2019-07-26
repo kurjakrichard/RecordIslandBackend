@@ -32,7 +32,6 @@ public class DiscogsService {
         this.properties = properties;
     }
     
-
     public List<Album> getDiscogsPage(int year, int page) {
         RestTemplate rt = new RestTemplate();
         HttpHeaders requestHeaders = new HttpHeaders();

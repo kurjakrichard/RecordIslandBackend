@@ -14,10 +14,14 @@ import javax.persistence.NamedSubgraph;
 
 @Entity
 @NamedEntityGraphs(
-        @NamedEntityGraph(name = "albmsWithSimilarArtists",
-                attributeNodes = @NamedAttributeNode(value = "artist", subgraph = "artist.similarArtists"),
-                subgraphs = @NamedSubgraph(name = "artist.similarArtists",
-                        attributeNodes = @NamedAttributeNode(value = "similarArtists"))))
+    @NamedEntityGraph(name = "albumsWithSimilarArtists",
+            attributeNodes = @NamedAttributeNode(value = "artist", subgraph = "artist.similarArtists"),
+            subgraphs = @NamedSubgraph(name = "artist.similarArtists",
+                            attributeNodes = @NamedAttributeNode(value = "similarArtists")
+                        )
+    )
+)
+
 public class Album implements Serializable {
 
     @Id

@@ -6,7 +6,6 @@ import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
 import com.progmatic.recordislandbackend.exception.LastFmException;
 import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import com.progmatic.recordislandbackend.service.AlbumService;
-import com.progmatic.recordislandbackend.service.ArtistService;
 import com.progmatic.recordislandbackend.service.RecommendationsServiceImpl;
 import java.util.List;
 import java.util.Set;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,17 +25,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecommendationsController {
     
     private final RecommendationsServiceImpl recommendationsService;
-    private final ArtistService artistService;
     private final AlbumService albumService;
     
     @Autowired
-    public RecommendationsController(RecommendationsServiceImpl recommendationsService, ArtistService artistService,
+    public RecommendationsController(RecommendationsServiceImpl recommendationsService,
             AlbumService albumService) {
         this.recommendationsService = recommendationsService;
-        this.artistService = artistService;
         this.albumService = albumService;
     }
     
+    @Deprecated
     @GetMapping(value = {"/api/discogsRecommendation"})
     public Set<Album> getUserRecommendationsFromDiscogs() throws LastFmException {
         return recommendationsService.getDiscogsRecommendations();
@@ -47,8 +44,6 @@ public class RecommendationsController {
     public List<AlbumResponseDto> getUserRecommendationsFromAllmusic() throws LastFmException, UserNotFoundException {
         return recommendationsService.getAllmusicRecommendationsFromDb();
     }
-    
-    
     
     @PostMapping(value = {"/api/userAlbumRecommendations/{id}"})
     public void handlePositiveFeedback(@PathVariable int id) throws UserNotFoundException, AlbumNotExistsException {
@@ -69,7 +64,5 @@ public class RecommendationsController {
     public @ResponseBody Set<AlbumResponseDto> getAlbumRecommendationsOfLoggedInUser() throws UserNotFoundException, LastFmException {
         return recommendationsService.getRecommendationsOfLoggedInUser();
     }
-    
-    
     
 }

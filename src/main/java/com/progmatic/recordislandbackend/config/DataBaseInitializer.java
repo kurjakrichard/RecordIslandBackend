@@ -6,9 +6,8 @@ import com.progmatic.recordislandbackend.domain.Authority;
 import com.progmatic.recordislandbackend.dto.ArtistDto;
 import com.progmatic.recordislandbackend.dto.RegistrationDto;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
-import com.progmatic.recordislandbackend.exception.ArtistNotExistsExeption;
+import com.progmatic.recordislandbackend.exception.ArtistNotExistsException;
 import com.progmatic.recordislandbackend.exception.LastFmException;
-import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import com.progmatic.recordislandbackend.service.AllMusicWebScrapeService;
 import com.progmatic.recordislandbackend.service.ArtistService;
 import com.progmatic.recordislandbackend.service.LastFmServiceImpl;
@@ -56,14 +55,14 @@ public class DataBaseInitializer {
     }
 
     @EventListener(classes = ContextRefreshedEvent.class)
-    public void onAppStartup(ContextRefreshedEvent ev) throws AlreadyExistsException, LastFmException, ArtistNotExistsExeption {
+    public void onAppStartup(ContextRefreshedEvent ev) throws AlreadyExistsException, LastFmException, ArtistNotExistsException {
         DataBaseInitializer dbInitializer = ev.getApplicationContext().getBean(DataBaseInitializer.class);
         dbInitializer.init();
 //        dbInitializer.getAllmusicRecommendations();
     }
 
     @Transactional
-    public void getAllmusicRecommendations() throws ArtistNotExistsExeption {
+    public void getAllmusicRecommendations() throws ArtistNotExistsException {
         if (em.createQuery("SELECT COUNT(alb.id) FROM Album alb", Long.class).getSingleResult() == 0) {
             Set<Album> allMusicReleases = allMusicWebscrapeService.getAllMusicReleases();
             for (Album allMusicRelease : allMusicReleases) {
@@ -82,7 +81,7 @@ public class DataBaseInitializer {
                             try {
                                 Artist currentArtist = artistService.findArtistByName(similarArtist.getName());
                                 artists.add(currentArtist);
-                            } catch (ArtistNotExistsExeption ex1) {
+                            } catch (ArtistNotExistsException ex1) {
                                 Artist newArtist = new Artist(similarArtist.getName());
                                 em.persist(newArtist);
                                 em.flush();

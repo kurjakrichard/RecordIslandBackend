@@ -1,7 +1,6 @@
 package com.progmatic.recordislandbackend.domain;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
 import javax.persistence.Entity;

@@ -7,34 +7,42 @@ import java.util.Objects;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedEntityGraphs;
 import javax.persistence.OneToMany;
 
 @Entity
+@NamedEntityGraphs({
+    @NamedEntityGraph(
+            name = "artistWithSimilarArtists",
+            attributeNodes = {
+                @NamedAttributeNode(value = "similarArtists")})
+})
 public class Artist implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @Column(unique=true)
+    @Column(unique = true)
     private String name;
-    @OneToMany(mappedBy="artist")
+    @OneToMany(mappedBy = "artist")
     private List<Album> albums;
     @ManyToMany()
     private Set<Artist> similarArtists = new HashSet<>();
-    
+
     public Artist() {
-       
+
     }
 
     public Artist(String name) {
         this.name = name;
     }
-    
+
     public String getName() {
         return name;
     }
@@ -42,7 +50,7 @@ public class Artist implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public List<Album> getAlbums() {
         return albums;
     }
@@ -95,8 +103,4 @@ public class Artist implements Serializable {
         }
         return true;
     }
-    
-    
-    
-    
 }

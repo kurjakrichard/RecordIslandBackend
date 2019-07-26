@@ -24,10 +24,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-/**
- *
- * @author balza
- */
+
 @Service
 public class UserService implements UserDetailsService {
 
@@ -56,7 +53,8 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.getUserWithAuthoritiesByUsername(username);
+        return userRepository.getUserWithAuthoritiesByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found! [ " + username + " ]"));
     }
 
     @Transactional
@@ -64,7 +62,7 @@ public class UserService implements UserDetailsService {
         if (userExists(registration.getUsername())) {
             throw new AlreadyExistsException(registration.getUsername() + " is already exists!");
         }
-        Authority authority; // TODO: check if it is in authorities if yes, select from db else create;
+        Authority authority; // TODO: check if it is in authorities if not, create;
         if (isAdmin) {
             authority = getAuthorityByName("ROLE_ADMIN");
         } else {
@@ -107,16 +105,17 @@ public class UserService implements UserDetailsService {
         User dbUser = findUserByName(loggedInUser.getUsername());
         return dbUser;
     }
-<<<<<<< Updated upstream
     
     public User getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists() throws UserNotFoundException {
         User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        EntityGraph eg = em.createEntityGraph("userWithAlbumRecommendationsAndLikedArtistsAndDislikedArtists");
-        User dbUser = em.createQuery("SELECT u FROM User u WHERE u.username = :name", User.class)
-                .setParameter("name", loggedInUser.getUsername())
-                .setHint(HINT_LOADGRAPH, eg)
-                .getSingleResult();
+        User dbUser = userRepository.getUserWithRecommendationsAndLikedAndDislikedArtistsByUsername(loggedInUser.getUsername())
+                .orElseThrow(() -> new UserNotFoundException("User not found! [ " + loggedInUser.getUsername() + " ]"));
         return dbUser;
+    }
+    
+    @Transactional
+    public User saveUser(User user){
+        return userRepository.save(user);
     }
     
     @Transactional
