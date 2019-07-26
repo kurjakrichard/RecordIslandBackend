@@ -36,7 +36,7 @@ public class SpotifyController {
     }
 
     @GetMapping(path = "/api/spotify/authorizationCodeUri")
-    public Map<String, Object> getAuthorizationCodeUri(@RequestParam String code) {
+    public Map<String, Object> getAuthorizationCodeUri() {
         String uri = spotifyService.getAuthorizationCodeUriRequest().toString();
 
         Map<String, Object> response = new HashMap<>();

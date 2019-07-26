@@ -152,16 +152,18 @@ public class SpotifyService {
             ArtistSimplified[] artists = track.getTrack().getArtists();
             Artist artist;
             for (ArtistSimplified artistSname : artists) {
-                String artistName = artistSname.getName();
+                String artistName = artistSname.getName();              
+                System.out.println("Artist from track: " + artistName);
                 try {
                     artist = artistRepository.findByName(artistName).get();
-                } catch (NoResultException e) {
+                } catch (NoSuchElementException e) {
                     artist = new Artist(artistName);
                     artistRepository.save(artist);
                     String username = SecurityContextHolder.getContext().getAuthentication().getName();
                     User user = (User) userService.loadUserByUsername(username);
                     user.getLikedArtists().add(artist);
                     userRepository.save(user);
+                    continue;
                 }
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
                 User user = (User) userService.loadUserByUsername(username);
@@ -179,7 +181,7 @@ public class SpotifyService {
             Artist artist;
             for (ArtistSimplified artistSname : artists) {
                 String artistName = artistSname.getName();
-                System.out.println(artistName);
+                System.out.println("Artist from album: " + artistName);
                 try {
                     artist = artistRepository.findByName(artistName).get();
                 } catch (NoSuchElementException e) {
