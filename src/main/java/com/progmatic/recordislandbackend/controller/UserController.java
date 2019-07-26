@@ -6,6 +6,7 @@ import com.progmatic.recordislandbackend.service.UserService;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,7 +29,7 @@ public class UserController {
     }
 
     @PostMapping(path = "/deleteUser")
-    public ResponseEntity deleteUser (@Valid @RequestParam String username) throws AlreadyExistsException {
+    public ResponseEntity deleteUser (@Valid @RequestParam String username) {
         userService.deleteUser(username);
         return ResponseEntity.ok().build();
     }
