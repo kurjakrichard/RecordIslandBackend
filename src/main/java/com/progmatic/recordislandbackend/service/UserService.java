@@ -1,11 +1,9 @@
 package com.progmatic.recordislandbackend.service;
 
-import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.Authority;
 import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.dto.RegistrationDto;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
@@ -14,6 +12,8 @@ import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import static org.hibernate.jpa.QueryHints.HINT_LOADGRAPH;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -36,7 +36,6 @@ public class UserService implements UserDetailsService {
     public UserService(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
-    
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -86,4 +85,12 @@ public class UserService implements UserDetailsService {
         user.setLastLoginDate(LocalDateTime.now());
     }
 
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteUser(String username) {
+        User user = em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
+                .setParameter("username", username)
+                .getSingleResult();
+        em.remove(user);
+    }
 }

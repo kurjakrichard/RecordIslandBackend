@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -23,6 +24,12 @@ public class UserController {
     @PostMapping(path = "/register")
     public ResponseEntity register(@Valid @RequestBody RegistrationDto registration) throws AlreadyExistsException {
         userService.createUser(registration);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(path = "/deleteUser")
+    public ResponseEntity deleteUser (@Valid @RequestParam String username) throws AlreadyExistsException {
+        userService.deleteUser(username);
         return ResponseEntity.ok().build();
     }
 }

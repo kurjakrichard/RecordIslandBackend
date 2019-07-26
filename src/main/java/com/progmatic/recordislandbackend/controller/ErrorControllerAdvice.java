@@ -30,4 +30,6 @@ public class ErrorControllerAdvice {
         ApiError error = new ApiError(status.value(), status.getReasonPhrase(), errors);
         return ResponseEntity.status(status).body(error);
     }
+    
+    //todo authority exeption
 }
