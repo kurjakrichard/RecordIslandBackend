@@ -6,9 +6,12 @@
 package com.progmatic.recordislandbackend.service;
 
 import com.progmatic.recordislandbackend.config.RecordIslandProperties;
+import com.progmatic.recordislandbackend.dao.ArtistRepository;
+import com.progmatic.recordislandbackend.dao.UserRepository;
 import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.domain.SpotifyAccessToken;
 import com.progmatic.recordislandbackend.domain.User;
+import com.progmatic.recordislandbackend.exception.SpotifyTokenNotFoundExcepion;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.SpotifyHttpManager;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
@@ -25,11 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.wrapper.spotify.requests.authorization.authorization_code.AuthorizationCodeRefreshRequest;
 import java.io.IOException;
-import javax.persistence.EntityManager;
+import java.util.NoSuchElementException;
 import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -41,17 +42,20 @@ public class SpotifyService {
 
     private final RecordIslandProperties properties;
     private SpotifyAccessToken spotifyAccestoken;
-    private URI spotifyRedirectUri = SpotifyHttpManager.makeUri("http://localhost:8080/api/spotify/callback");
+    private URI spotifyRedirectUri = SpotifyHttpManager.makeUri("http://localhost:4200/api/spotify/callback");
     private final UserService userService;
+    private ArtistRepository artistRepository;
+    private UserRepository userRepository;
 
-    @PersistenceContext
-    private EntityManager em;
-
+//    @PersistenceContext
+//    private EntityManager em;
     @Autowired
-    public SpotifyService(RecordIslandProperties properties, SpotifyAccessToken spotifyAccestoken, UserService userService) {
+    public SpotifyService(RecordIslandProperties properties, SpotifyAccessToken spotifyAccestoken, UserService userService, ArtistRepository artistRepository, UserRepository userRepository) {
         this.properties = properties;
         this.spotifyAccestoken = spotifyAccestoken;
         this.userService = userService;
+        this.artistRepository = artistRepository;
+        this.userRepository = userRepository;
     }
 
     public URI getAuthorizationCodeUriRequest() {
@@ -121,6 +125,10 @@ public class SpotifyService {
     }
 
     public SavedTrack[] getSavedTracks() throws SpotifyWebApiException, IOException {
+        
+        if(spotifyAccestoken.getToken() == null) {
+            throw new SpotifyTokenNotFoundExcepion("Token not found!");
+        }
 
         if (spotifyAccestoken.isExpired()) {
             refreshToken(spotifyAccestoken.getRefreshToken());
@@ -142,23 +150,24 @@ public class SpotifyService {
     public void saveSpotifyArtistFromTracks(SavedTrack[] tracks) throws SpotifyWebApiException, IOException {
         for (SavedTrack track : tracks) {
             ArtistSimplified[] artists = track.getTrack().getArtists();
-            String artistName = artists[0].getName();
-//            System.out.println("Az előadó: " + artistName);
             Artist artist;
-            try {
-                artist = em.createQuery("SELECT a FROM Artist a WHERE a.name = :artistName", Artist.class).setParameter("artistName", artistName).getSingleResult();
-            } catch (NoResultException e) {
-                artist = new Artist(artistName);
-                em.persist(artist);
+            for (ArtistSimplified artistSname : artists) {
+                String artistName = artistSname.getName();
+                try {
+                    artist = artistRepository.findByName(artistName).get();
+                } catch (NoResultException e) {
+                    artist = new Artist(artistName);
+                    artistRepository.save(artist);
+                    String username = SecurityContextHolder.getContext().getAuthentication().getName();
+                    User user = (User) userService.loadUserByUsername(username);
+                    user.getLikedArtists().add(artist);
+                    userRepository.save(user);
+                }
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
                 User user = (User) userService.loadUserByUsername(username);
                 user.getLikedArtists().add(artist);
-                em.persist(user);
+                userRepository.save(user);
             }
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            User user = (User) userService.loadUserByUsername(username);
-            user.getLikedArtists().add(artist);
-            em.persist(user);
         }
     }
 
@@ -167,24 +176,25 @@ public class SpotifyService {
         System.out.println("A kedvenc albumok száma: " + savedAlbums.length);
         for (SavedAlbum savedAlbum : savedAlbums) {
             ArtistSimplified[] artists = savedAlbum.getAlbum().getArtists();
-            String artistName = artists[0].getName();
-//            System.out.println("Az előadó: " + artistName);
             Artist artist;
-            try {
-                artist = em.createQuery("SELECT a FROM Artist a WHERE a.name = :artistName", Artist.class).setParameter("artistName", artistName).getSingleResult();
-            } catch (NoResultException e) {
-                artist = new Artist(artistName);
-                em.persist(artist);
+            for (ArtistSimplified artistSname : artists) {
+                String artistName = artistSname.getName();
+                System.out.println(artistName);
+                try {
+                    artist = artistRepository.findByName(artistName).get();
+                } catch (NoSuchElementException e) {
+                    artist = new Artist(artistName);
+                    artistRepository.save(artist);
+                    String username = SecurityContextHolder.getContext().getAuthentication().getName();
+                    User user = (User) userService.loadUserByUsername(username);
+                    user.getLikedArtists().add(artist);
+                    userRepository.save(user);
+                }
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
                 User user = (User) userService.loadUserByUsername(username);
                 user.getLikedArtists().add(artist);
-                em.persist(user);
+                userRepository.save(user);
             }
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            User user = (User) userService.loadUserByUsername(username);
-            user.getLikedArtists().add(artist);
-            em.persist(user);
         }
     }
-
 }

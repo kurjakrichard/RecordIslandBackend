@@ -2,6 +2,7 @@ package com.progmatic.recordislandbackend.controller;
 
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.ApiError;
+import com.progmatic.recordislandbackend.exception.SpotifyTokenNotFoundExcepion;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,12 @@ public class ErrorControllerAdvice {
 
     @ExceptionHandler(AlreadyExistsException.class)
     public ResponseEntity<ApiError> handleAlreadyExistsUser(AlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(), ex.getMessage()));
+    }
+    
+    @ExceptionHandler(SpotifyTokenNotFoundExcepion.class)
+    public ResponseEntity<ApiError> handleSpotifyTokenNotFoundExcepion(SpotifyTokenNotFoundExcepion ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(), ex.getMessage()));
     }

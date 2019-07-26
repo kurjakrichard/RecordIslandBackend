@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface ArtistRepository extends JpaRepository<Artist, Integer> {
+public interface ArtistRepository extends JpaRepository<Artist, Integer> { //Az Integer az id típusa
 
     Optional<Artist> findByName(String name);
 
