@@ -18,8 +18,6 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 
 /**
  *
@@ -97,15 +95,16 @@ public class RecommendationsServiceImpl {
         return resultSet;
 
     }
-    
+
+    @Transactional
     public List<AlbumResponseDto> getAllmusicRecommendationsFromDb() throws LastFmException, UserNotFoundException {
-        User loggedInUser = userService.getLoggedInUserForTransactions();
+        User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
+//        User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         ArrayList<AlbumResponseDto> resultList = new ArrayList<>();
         List<Album> allmusicAlbums = albumService.getAllAlbumsFromDb();
 
         for (Album album : allmusicAlbums) {
             Set<String> similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
-
 
 //            try {
 //                if (album.getArtist().getSimilarArtists().isEmpty()) {
@@ -118,15 +117,40 @@ public class RecommendationsServiceImpl {
 //                System.out.println(ex.getMessage() + album.getArtist().getName());
 //                continue;
 //            }
-
-
             if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
                     || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
                 resultList.add(AlbumResponseDto.from(album));
-                addAlbumToAlbumRecommendationsOfLoggedInUser(album);
+//                addAlbumToAlbumRecommendationsOfLoggedInUser(album);
             }
         }
         return resultList;
+
+    }
+
+    @Transactional
+    public void updateLoggedinUsersAlbumRecommendations() throws UserNotFoundException {
+        User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
+        List<Album> allmusicAlbums = albumService.getAllAlbumsFromDb();
+
+        for (Album album : allmusicAlbums) {
+            Set<String> similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
+
+//            try {
+//                if (album.getArtist().getSimilarArtists().isEmpty()) {
+//                    similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName()).stream().map(ArtistDto::getName).collect(Collectors.toSet());
+//                    
+//                } else {
+//                    similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
+//                }
+//            } catch (LastFmException ex) {
+//                System.out.println(ex.getMessage() + album.getArtist().getName());
+//                continue;
+//            }
+            if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
+                    || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
+                addAlbumToAlbumRecommendationsOfLoggedInUser(album);
+            }
+        }
 
     }
 
@@ -136,33 +160,41 @@ public class RecommendationsServiceImpl {
         loggedInUser.addArtistToLikedArtists(artist);
         em.persist(loggedInUser);
     }
-    
+
     @Transactional
     public void addAlbumToAlbumRecommendationsOfLoggedInUser(Album album) throws UserNotFoundException {
-        User loggedInUser = userService.getLoggedInUserForTransactions();
+        User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
         loggedInUser.addAlbumToAlbumRecommendations(album);
         em.persist(loggedInUser);
     }
-    
+
     @Transactional
     public void removeAlbumFromAlbumRecommendationsOfLoggedinUser(Album album) throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactions();
         loggedInUser.removeAlbumFromAlbumRecommendations(album);
         em.persist(loggedInUser);
     }
-    
+
     @Transactional
     public void addArtistToUsersDislikedArtists(Artist artist) throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactions();
         loggedInUser.addArtistToDislikedArtists(artist);
         em.persist(loggedInUser);
     }
-    
-    public Set<Album> getRecommendationsOfLoggedInUser() throws UserNotFoundException{
-        return userService.getLoggedInUserForTransactions().getAlbumRecommendations();
+
+    @Transactional
+    public Set<AlbumResponseDto> getRecommendationsOfLoggedInUser() throws UserNotFoundException, LastFmException {
+        if (userService.getLoggedInUserForTransactions().getAlbumRecommendations().isEmpty()) {
+            updateLoggedinUsersAlbumRecommendations();
+        } else {
+
+        }
+        Set<AlbumResponseDto> resultSet = new HashSet<>();
+        for (Album albumRecommendation : userService.getLoggedInUserForTransactions().getAlbumRecommendations()) {
+            resultSet.add(AlbumResponseDto.from(albumRecommendation));
+        }
+        return resultSet;
     }
-    
-    
-    
+
 
 }
