@@ -13,6 +13,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -52,5 +53,11 @@ public class UserController {
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Verification token is " + result + "!");
         }
+    }
+
+    @PostMapping(path = "/deleteUser")
+    public ResponseEntity deleteUser (@Valid @RequestParam String username) {
+        userService.deleteUser(username);
+        return ResponseEntity.ok().build();
     }
 }

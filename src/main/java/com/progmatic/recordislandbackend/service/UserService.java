@@ -1,8 +1,11 @@
 package com.progmatic.recordislandbackend.service;
 
+<<<<<<< HEAD
 import com.progmatic.recordislandbackend.dao.AuthorityRepository;
 import com.progmatic.recordislandbackend.dao.UserRepository;
 import com.progmatic.recordislandbackend.dao.VerificationTokenRepository;
+=======
+>>>>>>> master
 import com.progmatic.recordislandbackend.domain.Authority;
 import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.domain.VerificationToken;
@@ -16,7 +19,7 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -90,6 +93,18 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
+<<<<<<< HEAD
+=======
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteUser(String username) {
+        User user = em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
+                .setParameter("username", username)
+                .getSingleResult();
+        em.remove(user);
+    }
+    @org.springframework.transaction.annotation.Transactional(isolation = Isolation.READ_UNCOMMITTED)
+>>>>>>> master
     public User findUserById(int id) throws UserNotFoundException {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found with id( " + id + " )!"));
         return user;
