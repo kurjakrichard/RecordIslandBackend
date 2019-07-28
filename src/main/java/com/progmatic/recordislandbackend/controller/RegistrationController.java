@@ -1,9 +1,12 @@
 package com.progmatic.recordislandbackend.controller;
 
+import com.progmatic.recordislandbackend.config.DataBaseInitializer;
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.dto.ArtistDto;
 import com.progmatic.recordislandbackend.dto.GenreResponseDTO;
+import com.progmatic.recordislandbackend.exception.ArtistNotExistsException;
 import com.progmatic.recordislandbackend.exception.LastFmException;
+import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import com.progmatic.recordislandbackend.service.AllMusicWebScrapeService;
 import com.progmatic.recordislandbackend.service.DiscogsService;
 import com.progmatic.recordislandbackend.service.LastFmServiceImpl;
@@ -12,6 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,13 +26,15 @@ public class RegistrationController {
     private final LastFmServiceImpl lastFmServiceImpl;
     private final DiscogsService discogsService;
     private final AllMusicWebScrapeService allmusicWebscrapeService;
+    private DataBaseInitializer dbi;
 
     @Autowired
     public RegistrationController(LastFmServiceImpl lastFmServiceImpl, DiscogsService discogsService,
-            AllMusicWebScrapeService allMusicWebScrapeService) {
+            AllMusicWebScrapeService allMusicWebScrapeService, DataBaseInitializer dbi) {
         this.lastFmServiceImpl = lastFmServiceImpl;
         this.discogsService = discogsService;
         this.allmusicWebscrapeService = allMusicWebScrapeService;
+        this.dbi = dbi;
     }
 
     @GetMapping(path = "/api/genres")
@@ -68,6 +74,10 @@ public class RegistrationController {
         return allmusicWebscrapeService.getAllMusicReleases();
     }
     
-    
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping(value = {"/api/runWeeklyWebScrape"})
+    public void getUserRecommendationsFromAllmusic() throws LastFmException, UserNotFoundException, ArtistNotExistsException {
+        dbi.getAllmusicRecommendations2();
+    }
 
 }

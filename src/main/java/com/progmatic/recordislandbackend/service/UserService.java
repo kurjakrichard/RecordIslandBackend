@@ -13,7 +13,6 @@ import com.progmatic.recordislandbackend.exception.VerificationTokenNotFoundExce
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.UUID;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;

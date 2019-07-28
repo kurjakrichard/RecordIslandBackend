@@ -2,6 +2,10 @@ package com.progmatic.recordislandbackend.domain;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalField;
+import java.time.temporal.WeekFields;
+import java.util.Locale;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -14,12 +18,12 @@ import javax.persistence.NamedSubgraph;
 
 @Entity
 @NamedEntityGraphs(
-    @NamedEntityGraph(name = "albumsWithSimilarArtists",
-            attributeNodes = @NamedAttributeNode(value = "artist", subgraph = "artist.similarArtists"),
-            subgraphs = @NamedSubgraph(name = "artist.similarArtists",
-                            attributeNodes = @NamedAttributeNode(value = "similarArtists")
-                        )
-    )
+        @NamedEntityGraph(name = "albumsWithSimilarArtists",
+                attributeNodes = @NamedAttributeNode(value = "artist", subgraph = "artist.similarArtists"),
+                subgraphs = @NamedSubgraph(name = "artist.similarArtists",
+                        attributeNodes = @NamedAttributeNode(value = "similarArtists")
+                )
+        )
 )
 
 public class Album implements Serializable {
@@ -30,15 +34,15 @@ public class Album implements Serializable {
     private String title;
     @ManyToOne
     private Artist artist;
-    private LocalDate releaseDate;
+    private LocalDateTime releaseDate;
     private String img;
 
     public Album() {
     }
 
-    public Album(String title, LocalDate releaseDate) {
+    public Album(String title) {
         this.title = title;
-        this.releaseDate = releaseDate;
+        this.releaseDate = LocalDateTime.now();
     }
 
     public String getTitle() {
@@ -57,14 +61,14 @@ public class Album implements Serializable {
         this.artist = artist;
     }
 
-    public LocalDate getReleaseDate() {
+    public LocalDateTime getReleaseDate() {
         return releaseDate;
     }
 
-    public void setReleaseDate(LocalDate releaseDate) {
+    public void setReleaseDate(LocalDateTime releaseDate) {
         this.releaseDate = releaseDate;
     }
-
+    
     public int getId() {
         return id;
     }
@@ -80,4 +84,6 @@ public class Album implements Serializable {
     public void setImg(String img) {
         this.img = img;
     }
+    
+    
 }

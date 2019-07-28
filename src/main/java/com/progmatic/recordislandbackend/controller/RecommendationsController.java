@@ -45,6 +45,8 @@ public class RecommendationsController {
         return recommendationsService.getAllmusicRecommendationsFromDb();
     }
     
+    
+    
     @PostMapping(value = {"/api/userAlbumRecommendations/{id}"})
     public void handlePositiveFeedback(@PathVariable int id) throws UserNotFoundException, AlbumNotExistsException {
         Album album = albumService.findAlbumById(id);

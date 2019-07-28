@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -61,6 +63,7 @@ public class DataBaseInitializer {
 //        dbInitializer.getAllmusicRecommendations();
     }
 
+    @Scheduled(cron = "0 32 9 * * ? 2019")
     @Transactional
     public void getAllmusicRecommendations() throws ArtistNotExistsException {
         if (em.createQuery("SELECT COUNT(alb.id) FROM Album alb", Long.class).getSingleResult() == 0) {
@@ -97,5 +100,44 @@ public class DataBaseInitializer {
                 em.persist(allMusicRelease);
             }
         }
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Transactional
+    public void getAllmusicRecommendations2() throws ArtistNotExistsException {
+
+        Set<Album> allMusicReleases = allMusicWebscrapeService.getAllMusicReleases();
+        for (Album allMusicRelease : allMusicReleases) {
+            try {
+                Artist artist = em.createQuery("SELECT art FROM Artist art WHERE art.name = :name", Artist.class).setParameter("name", allMusicRelease.getArtist().getName()).getSingleResult();
+                allMusicRelease.setArtist(artist);
+
+            } catch (NoResultException ex) {
+                em.persist(allMusicRelease.getArtist());
+                em.flush();
+                try {
+                    Set<ArtistDto> similarArtists;
+                    similarArtists = lastFmServiceImpl.listSimilarArtists(allMusicRelease.getArtist().getName());
+                    Set<Artist> artists = new HashSet<>();
+                    for (ArtistDto similarArtist : similarArtists) {
+                        try {
+                            Artist currentArtist = artistService.findArtistByName(similarArtist.getName());
+                            artists.add(currentArtist);
+                        } catch (ArtistNotExistsException ex1) {
+                            Artist newArtist = new Artist(similarArtist.getName());
+                            em.persist(newArtist);
+                            em.flush();
+                            artists.add(newArtist);
+                        }
+                    }
+                    allMusicRelease.getArtist().setSimilarArtists(artists);
+                } catch (LastFmException ex1) {
+                    logger.debug(ex1.getMessage());
+                }
+
+            }
+            em.persist(allMusicRelease);
+        }
+
     }
 }

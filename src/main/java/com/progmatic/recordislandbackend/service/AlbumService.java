@@ -1,15 +1,11 @@
 package com.progmatic.recordislandbackend.service;
 
 import com.progmatic.recordislandbackend.domain.Album;
-import com.progmatic.recordislandbackend.domain.Artist;
-import com.progmatic.recordislandbackend.dto.AlbumControllerDto;
 import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
-import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
-import com.progmatic.recordislandbackend.exception.ArtistNotExistsException;
 import com.progmatic.recordislandbackend.dao.AlbumRepository;
 import com.progmatic.recordislandbackend.dao.ArtistRepository;
+import java.time.LocalDateTime;
 import java.util.List;
-import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,32 +13,13 @@ import org.springframework.stereotype.Service;
 public class AlbumService {
 
     private final AlbumRepository albumRepository;
-    private final ArtistRepository artistRepository;
 
     @Autowired
     public AlbumService(AlbumRepository albumRepository,
             ArtistRepository artistRepository) {
         this.albumRepository = albumRepository;
-        this.artistRepository = artistRepository;
     }
     
-    @Transactional
-    public void createAlbum(AlbumControllerDto albumDto) throws AlreadyExistsException, ArtistNotExistsException {
-
-        String artistName = albumDto.getArtistName();
-        String albumTitle = albumDto.getTitle();
-        if (albumExists(albumDto.getTitle(), artistName)) {
-            throw new AlreadyExistsException(albumTitle + " named album is already exists!");
-        }
-        
-        Artist artist = artistRepository.findByName(artistName)
-                .orElseThrow(() -> new ArtistNotExistsException(artistName + "named artist does not exist in the database!"));
-        
-        Album album = new Album(albumTitle, albumDto.getReleaseDate());
-        album.setArtist(artist);
-        albumRepository.save(album);
-    }
-
     public boolean albumExists(String title, String artist) {
         return albumRepository.exists(title, artist);
     }
@@ -66,4 +43,9 @@ public class AlbumService {
     public List<Album> getAllAlbumsWithSimilarArtists() {
         return albumRepository.findAllAlbumsWithSimilarArtists();
     }
+    
+    public List<Album> getAllAlbumsWithSimilarArtistsReleasedAfterLoggedInUsersLastRecommendationUpdate(LocalDateTime time) {
+        return albumRepository.findAllAlbumsWithSimilarArtistsReleasedAfterLoggedInUsersLastRecommendationUpdate(time);
+    }
+    
 }

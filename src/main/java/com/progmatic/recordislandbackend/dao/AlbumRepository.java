@@ -1,6 +1,7 @@
 package com.progmatic.recordislandbackend.dao;
 
 import com.progmatic.recordislandbackend.domain.Album;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -19,4 +20,8 @@ public interface AlbumRepository extends JpaRepository<Album, Integer>{
     @EntityGraph(value = "albumsWithSimilarArtists")
     @Query("SELECT alb FROM Album alb")
     List<Album> findAllAlbumsWithSimilarArtists();
+    
+    @EntityGraph(value = "albumsWithSimilarArtists")
+    @Query("SELECT alb FROM Album alb WHERE alb.releaseDate > :time OR alb.releaseDate IS NULL")
+    List<Album> findAllAlbumsWithSimilarArtistsReleasedAfterLoggedInUsersLastRecommendationUpdate(@Param("time")LocalDateTime time);
 }

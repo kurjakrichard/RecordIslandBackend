@@ -1,5 +1,6 @@
 package com.progmatic.recordislandbackend.domain;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
@@ -59,6 +60,7 @@ public class User implements UserDetails {
     private Set<Artist> dislikedArtists = new HashSet<>();
     @ManyToMany
     private Set<Album> albumRecommendations = new HashSet<>();
+    private LocalDateTime lastRecommendationUpdate;
     private String lastFmAccountName;
     private String spotifyAccountName;
 
@@ -234,4 +236,12 @@ public class User implements UserDetails {
     public void addArtistToDislikedArtists(Artist artist) {
         this.dislikedArtists.add(artist);
     }
+
+    public LocalDateTime getLastRecommendationUpdate() {
+        return lastRecommendationUpdate;
+    }
+
+    public void setLastRecommendationUpdate(LocalDateTime lastRecommendationUpdate) {
+        this.lastRecommendationUpdate = lastRecommendationUpdate;
+    } 
 }

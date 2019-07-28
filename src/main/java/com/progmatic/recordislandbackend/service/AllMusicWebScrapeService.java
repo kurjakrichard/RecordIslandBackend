@@ -2,6 +2,7 @@ package com.progmatic.recordislandbackend.service;
 
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.Artist;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import org.jsoup.Jsoup;
@@ -34,6 +35,7 @@ public class AllMusicWebScrapeService {
                         album.setArtist(new Artist(row.select("td:nth-of-type(1)").text()));
                         album.setTitle(row.select("td:nth-of-type(2)").text());
                         album.setImg(getAlbumImgLink(row.select("td:nth-of-type(2)").select("a").attr("href")));
+                        album.setReleaseDate(LocalDateTime.now());
                         releases.add(album);
                     }
                 }
@@ -57,4 +59,6 @@ public class AllMusicWebScrapeService {
         }
         return imgLink;
     }
+    
+    
 }
