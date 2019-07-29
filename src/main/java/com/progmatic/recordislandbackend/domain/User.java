@@ -60,9 +60,11 @@ public class User implements UserDetails {
     private Set<Artist> dislikedArtists = new HashSet<>();
     @ManyToMany
     private Set<Album> albumRecommendations = new HashSet<>();
-    private LocalDateTime lastRecommendationUpdate;
+    @ManyToMany
+    private Set<Album> pastAlbumRecommendations = new HashSet<>();
     private String lastFmAccountName;
     private String spotifyAccountName;
+    private LocalDateTime lastRecommendationUpdate;
 
     public User() {
         this.enabled = false;
@@ -237,11 +239,28 @@ public class User implements UserDetails {
         this.dislikedArtists.add(artist);
     }
 
+    public Set<Album> getPastAlbumRecommendations() {
+        return pastAlbumRecommendations;
+    }
+
+    public void setPastAlbumRecommendations(Set<Album> pastAlbumRecommendations) {
+        this.pastAlbumRecommendations = pastAlbumRecommendations;
+    }
+
+    public void addAlbumToPastAlbumRecommendations(Album album) {
+        this.pastAlbumRecommendations.add(album);
+    }
+
+    public void addAlbumsToPastAlbumRecommendations(Set<Album> albums) {
+        this.pastAlbumRecommendations.addAll(albums);
+    }
+
     public LocalDateTime getLastRecommendationUpdate() {
         return lastRecommendationUpdate;
     }
 
     public void setLastRecommendationUpdate(LocalDateTime lastRecommendationUpdate) {
         this.lastRecommendationUpdate = lastRecommendationUpdate;
-    } 
+    }
+
 }

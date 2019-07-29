@@ -116,9 +116,11 @@ public class UserService implements UserDetailsService {
     }
     
     public User getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists() throws UserNotFoundException {
+        System.out.println("start");
         User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User dbUser = userRepository.getUserWithRecommendationsAndLikedAndDislikedArtistsByUsername(loggedInUser.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("User not found! [ " + loggedInUser.getUsername() + " ]"));
+        System.out.println("end");
         return dbUser;
     }
     

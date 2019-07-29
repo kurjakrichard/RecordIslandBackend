@@ -66,31 +66,31 @@ public class RecommendationsServiceImpl {
     }
 
     //Weekly run 1 hour long db updater
-    @Scheduled(cron = "0 26 9 * * ? 2019")
-    public Set<Album> getAllmusicRecommendations() throws LastFmException {
-        User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        HashSet<Album> resultSet = new HashSet();
-        Set<Album> allmusicAlbums = allmusicWebscrapeService.getAllMusicReleases();
-
-        for (Album album : allmusicAlbums) {
-            Set<String> similarArtists;
-            try {
-                if (album.getArtist().getSimilarArtists().isEmpty()) {
-                    similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName()).stream().map(ArtistDto::getName).collect(Collectors.toSet());
-                } else {
-                    similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
-                }
-            } catch (LastFmException ex) {
-                System.out.println(ex.getMessage() + album.getArtist().getName());
-                continue;
-            }
-            if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
-                    || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
-                resultSet.add(album);
-            }
-        }
-        return resultSet;
-    }
+//    @Scheduled(cron = "0 26 9 * * ? 2019")
+//    public Set<Album> getAllmusicRecommendations() throws LastFmException {
+//        User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        HashSet<Album> resultSet = new HashSet();
+//        Set<Album> allmusicAlbums = allmusicWebscrapeService.getAllMusicReleases();
+//
+//        for (Album album : allmusicAlbums) {
+//            Set<String> similarArtists;
+//            try {
+//                if (album.getArtist().getSimilarArtists().isEmpty()) {
+//                    similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName()).stream().map(ArtistDto::getName).collect(Collectors.toSet());
+//                } else {
+//                    similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
+//                }
+//            } catch (LastFmException ex) {
+//                System.out.println(ex.getMessage() + album.getArtist().getName());
+//                continue;
+//            }
+//            if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
+//                    || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
+//                resultSet.add(album);
+//            }
+//        }
+//        return resultSet;
+//    }
 
     @Transactional
     public List<AlbumResponseDto> getAllmusicRecommendationsFromDb() throws LastFmException, UserNotFoundException {
@@ -126,15 +126,17 @@ public class RecommendationsServiceImpl {
         User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
         List<Album> allmusicAlbums = albumService.getAllAlbumsWithSimilarArtistsReleasedAfterLoggedInUsersLastRecommendationUpdate(LocalDateTime.now());
         Set<Album> tempAlbumRecommendations = new HashSet<>();
-
+        System.out.println(allmusicAlbums.size());
         for (Album album : allmusicAlbums) {
             Set<String> similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
-            if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
+            if (similarArtists != null && !loggedInUser.getPastAlbumRecommendations().contains(album)
+                    && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
                     || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
                 tempAlbumRecommendations.add(album);
             }
         }
         loggedInUser.addAlbumsToAlbumRecommendations(tempAlbumRecommendations);
+        loggedInUser.addAlbumsToPastAlbumRecommendations(tempAlbumRecommendations);
         loggedInUser.setLastRecommendationUpdate(LocalDateTime.now());
     }
 
@@ -172,6 +174,7 @@ public class RecommendationsServiceImpl {
         }
         return resultSet;
     }
+    
     
     
 }

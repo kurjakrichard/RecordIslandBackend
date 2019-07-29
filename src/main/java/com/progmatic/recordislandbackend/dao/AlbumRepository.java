@@ -22,6 +22,6 @@ public interface AlbumRepository extends JpaRepository<Album, Integer>{
     List<Album> findAllAlbumsWithSimilarArtists();
     
     @EntityGraph(value = "albumsWithSimilarArtists")
-    @Query("SELECT alb FROM Album alb WHERE alb.releaseDate > :time OR alb.releaseDate IS NULL")
+    @Query("SELECT alb FROM Album alb WHERE alb.releaseDate < :time OR alb.releaseDate IS NULL")
     List<Album> findAllAlbumsWithSimilarArtistsReleasedAfterLoggedInUsersLastRecommendationUpdate(@Param("time")LocalDateTime time);
 }
