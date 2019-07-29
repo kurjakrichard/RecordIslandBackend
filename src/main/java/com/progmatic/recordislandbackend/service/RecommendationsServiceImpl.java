@@ -1,11 +1,11 @@
 package com.progmatic.recordislandbackend.service;
 
-import com.progmatic.recordislandbackend.config.DataBaseInitializer;
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.dto.AlbumResponseDto;
 import com.progmatic.recordislandbackend.dto.ArtistDto;
+import com.progmatic.recordislandbackend.exception.ArtistNotExistsException;
 import com.progmatic.recordislandbackend.exception.LastFmException;
 import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import java.time.LocalDateTime;
@@ -14,7 +14,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,20 +32,26 @@ import org.springframework.stereotype.Service;
 @Service
 public class RecommendationsServiceImpl {
 
+    @PersistenceContext
+    private EntityManager em;
     private final LastFmServiceImpl lastFmService;
     private final DiscogsService discogsService;
     private final AllMusicWebScrapeService allmusicWebscrapeService;
     private final UserService userService;
     private final AlbumService albumService;
+    private final ArtistService artistService;
+    private Logger logger = LoggerFactory.getLogger(RecommendationsServiceImpl.class);
 
     @Autowired
     public RecommendationsServiceImpl(LastFmServiceImpl lastFmService, DiscogsService discogsService,
-            AllMusicWebScrapeService allmusicWebscrapeService, UserService userService, AlbumService albumService) {
+            AllMusicWebScrapeService allmusicWebscrapeService, UserService userService, AlbumService albumService,
+            ArtistService artistService) {
         this.lastFmService = lastFmService;
         this.discogsService = discogsService;
         this.allmusicWebscrapeService = allmusicWebscrapeService;
         this.userService = userService;
         this.albumService = albumService;
+        this.artistService = artistService;
     }
 
     @Deprecated
@@ -65,33 +76,46 @@ public class RecommendationsServiceImpl {
         return resultSet;
     }
 
-    //Weekly run 1 hour long db updater
-//    @Scheduled(cron = "0 26 9 * * ? 2019")
-//    public Set<Album> getAllmusicRecommendations() throws LastFmException {
-//        User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        HashSet<Album> resultSet = new HashSet();
-//        Set<Album> allmusicAlbums = allmusicWebscrapeService.getAllMusicReleases();
-//
-//        for (Album album : allmusicAlbums) {
-//            Set<String> similarArtists;
-//            try {
-//                if (album.getArtist().getSimilarArtists().isEmpty()) {
-//                    similarArtists = lastFmService.listSimilarArtists(album.getArtist().getName()).stream().map(ArtistDto::getName).collect(Collectors.toSet());
-//                } else {
-//                    similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
-//                }
-//            } catch (LastFmException ex) {
-//                System.out.println(ex.getMessage() + album.getArtist().getName());
-//                continue;
-//            }
-//            if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
-//                    || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
-//                resultSet.add(album);
-//            }
-//        }
-//        return resultSet;
-//    }
+  
 
+    @Scheduled(cron = "0 44 13 * * ?")
+    @Transactional
+    public void getAllmusicReleasesFromAllMusicDotCom() throws ArtistNotExistsException {
+
+        Set<Album> allMusicReleases = allmusicWebscrapeService.getAllMusicReleases();
+        for (Album allMusicRelease : allMusicReleases) {
+            try {
+                Artist artist = em.createQuery("SELECT art FROM Artist art WHERE art.name = :name", Artist.class).setParameter("name", allMusicRelease.getArtist().getName()).getSingleResult();
+                allMusicRelease.setArtist(artist);
+
+            } catch (NoResultException ex) {
+                em.persist(allMusicRelease.getArtist());
+                em.flush();
+                try {
+                    Set<ArtistDto> similarArtists;
+                    similarArtists = lastFmService.listSimilarArtists(allMusicRelease.getArtist().getName());
+                    Set<Artist> artists = new HashSet<>();
+                    for (ArtistDto similarArtist : similarArtists) {
+                        try {
+                            Artist currentArtist = artistService.findArtistByName(similarArtist.getName());
+                            artists.add(currentArtist);
+                        } catch (ArtistNotExistsException ex1) {
+                            Artist newArtist = new Artist(similarArtist.getName());
+                            em.persist(newArtist);
+                            em.flush();
+                            artists.add(newArtist);
+                        }
+                    }
+                    allMusicRelease.getArtist().setSimilarArtists(artists);
+                } catch (LastFmException ex1) {
+                    logger.debug(ex1.getMessage());
+                }
+
+            }
+            em.persist(allMusicRelease);
+        }
+
+    }
     @Transactional
     public List<AlbumResponseDto> getAllmusicRecommendationsFromDb() throws LastFmException, UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
@@ -126,7 +150,6 @@ public class RecommendationsServiceImpl {
         User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
         List<Album> allmusicAlbums = albumService.getAllAlbumsWithSimilarArtistsReleasedAfterLoggedInUsersLastRecommendationUpdate(LocalDateTime.now());
         Set<Album> tempAlbumRecommendations = new HashSet<>();
-        System.out.println(allmusicAlbums.size());
         for (Album album : allmusicAlbums) {
             Set<String> similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
             if (similarArtists != null && !loggedInUser.getPastAlbumRecommendations().contains(album)
@@ -165,9 +188,6 @@ public class RecommendationsServiceImpl {
     public Set<AlbumResponseDto> getRecommendationsOfLoggedInUser() throws UserNotFoundException, LastFmException {
         User actUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
         Set<AlbumResponseDto> resultSet = new HashSet<>();
-//        if (actUser.getAlbumRecommendations().isEmpty()) {
-//            updateLoggedinUsersAlbumRecommendations();
-//        }
         updateLoggedinUsersAlbumRecommendations();
         for (Album albumRecommendation : actUser.getAlbumRecommendations()) {
             resultSet.add(AlbumResponseDto.from(albumRecommendation));

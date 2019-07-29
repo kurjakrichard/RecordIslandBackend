@@ -1,6 +1,5 @@
 package com.progmatic.recordislandbackend.controller;
 
-import com.progmatic.recordislandbackend.config.DataBaseInitializer;
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.dto.ArtistDto;
 import com.progmatic.recordislandbackend.dto.GenreResponseDTO;
@@ -10,6 +9,7 @@ import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import com.progmatic.recordislandbackend.service.AllMusicWebScrapeService;
 import com.progmatic.recordislandbackend.service.DiscogsService;
 import com.progmatic.recordislandbackend.service.LastFmServiceImpl;
+import com.progmatic.recordislandbackend.service.RecommendationsServiceImpl;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,15 +26,15 @@ public class RegistrationController {
     private final LastFmServiceImpl lastFmServiceImpl;
     private final DiscogsService discogsService;
     private final AllMusicWebScrapeService allmusicWebscrapeService;
-    private DataBaseInitializer dbi;
+    private final RecommendationsServiceImpl recommendationsService;
 
     @Autowired
     public RegistrationController(LastFmServiceImpl lastFmServiceImpl, DiscogsService discogsService,
-            AllMusicWebScrapeService allMusicWebScrapeService, DataBaseInitializer dbi) {
+            AllMusicWebScrapeService allMusicWebScrapeService, RecommendationsServiceImpl recommendationsService) {
         this.lastFmServiceImpl = lastFmServiceImpl;
         this.discogsService = discogsService;
         this.allmusicWebscrapeService = allMusicWebScrapeService;
-        this.dbi = dbi;
+        this.recommendationsService = recommendationsService;
     }
 
     @GetMapping(path = "/api/genres")
@@ -77,7 +77,7 @@ public class RegistrationController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(value = {"/api/runWeeklyWebScrape"})
     public void getUserRecommendationsFromAllmusic() throws LastFmException, UserNotFoundException, ArtistNotExistsException {
-        dbi.getAllmusicRecommendations2();
+        recommendationsService.getAllmusicReleasesFromAllMusicDotCom();
     }
 
 }
