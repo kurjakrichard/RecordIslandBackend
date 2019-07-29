@@ -2,28 +2,35 @@ package com.progmatic.recordislandbackend.listener;
 
 import com.progmatic.recordislandbackend.controller.OnRegistrationCompleteEvent;
 import com.progmatic.recordislandbackend.domain.User;
+import com.progmatic.recordislandbackend.dto.MailDTO;
+import com.progmatic.recordislandbackend.exception.EmailSendingException;
+import com.progmatic.recordislandbackend.exception.EmailTemplateNotFound;
+import com.progmatic.recordislandbackend.service.IEmailService;
 import com.progmatic.recordislandbackend.service.UserService;
+import freemarker.template.TemplateException;
+import java.io.IOException;
 import java.util.UUID;
+import javax.mail.MessagingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RegistrationListener implements ApplicationListener<OnRegistrationCompleteEvent> {
 
-    private JavaMailSender mailSender;
-
-    private UserService userService;
+    private final IEmailService emailService;
+    private final UserService userService;
+    
+    private Logger logger = LoggerFactory.getLogger(RegistrationListener.class);
 
     @Autowired
-    public RegistrationListener(JavaMailSender mailSender, UserService userService) {
-        this.mailSender = mailSender;
+    public RegistrationListener(IEmailService emailService, UserService userService) {
+        this.emailService = emailService;
         this.userService = userService;
     }
-    
-    //private MessageSource messages;
 
     @Override
     public void onApplicationEvent(OnRegistrationCompleteEvent event) {
@@ -35,23 +42,27 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
         String token = UUID.randomUUID().toString();
         userService.createVerificationTokenForUser(user, token);
 
-        final SimpleMailMessage email = constructEmailMessage(event, user, token);
-        mailSender.send(email);
-    }
-    
-     private final SimpleMailMessage constructEmailMessage(final OnRegistrationCompleteEvent event, final User user, final String token) {
-        final String recipientAddress = user.getEmail();
-        final String subject = "Registration Confirmation";
-        final String confirmationUrl = "http://localhost:4200/verify?token=" + token;
-        //final String message = messages.getMessage("message.regSucc", null, event.getLocale());
-        final String message = "Successful registration!!!";
-        final SimpleMailMessage email = new SimpleMailMessage();
-        email.setTo(recipientAddress);
-        email.setSubject(subject);
-        email.setText(message + " \r\n" + confirmationUrl);
-        email.setFrom("record.island@protonmail.com");
-        //email.setFrom(env.getProperty("support.email"));
-        return email;
+        MailDTO mailDTO = new MailDTO("record.islandhun@gmail.com", user.getEmail(), user.getUsername(), "Registration Confirmation", token);
+        mailDTO.setVerificationUrl("https://recordisland.herokuapp.com/verify?token=");
+        try {
+            emailService.sendEmail(mailDTO, "verificationEmail");
+        } catch (MessagingException ex) {
+            logger.error(ex.getMessage());
+            throw new EmailSendingException(ex.getMessage());
+        } catch (IOException ex) {
+            logger.error(ex.getMessage());
+            throw new EmailSendingException(ex.getMessage());
+        } catch (TemplateException ex) {
+            logger.error(ex.getMessage());
+            throw new EmailSendingException(ex.getMessage());
+        } catch (EmailTemplateNotFound ex) {
+            logger.error(ex.getMessage());
+            throw new EmailSendingException(ex.getMessage());
+        }
     }
 
+    private void simpleEmailSend(User user, String token) {
+        final SimpleMailMessage email = emailService.constructSimpleEmailMessageForEmailAddressVerification(user, token);
+        emailService.sendSimpleMessage(email);
+    }
 }

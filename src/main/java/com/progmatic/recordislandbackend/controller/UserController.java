@@ -37,12 +37,8 @@ public class UserController {
     public ResponseEntity register(@Valid @RequestBody RegistrationDto registration, WebRequest request) throws AlreadyExistsException {
         User registered = userService.createUser(registration, false);
         userService.addUsersLastFmHistory(registration);
-//        try {
-            String appUrl = request.getContextPath();
-            eventPublisher.publishEvent(new OnRegistrationCompleteEvent(registered, request.getLocale(), appUrl));
-//        } catch (Exception ex) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new EmailSendingException("Error during email sending!"));
-//        }
+        String appUrl = request.getContextPath();
+        eventPublisher.publishEvent(new OnRegistrationCompleteEvent(registered, request.getLocale(), appUrl));
         return ResponseEntity.ok().build();
     }
 
@@ -57,7 +53,7 @@ public class UserController {
     }
 
     @PostMapping(path = "/deleteUser")
-    public ResponseEntity deleteUser (@Valid @RequestParam String username) throws UserNotFoundException {
+    public ResponseEntity deleteUser(@Valid @RequestParam String username) throws UserNotFoundException {
         userService.deleteUser(username);
         return ResponseEntity.ok().build();
     }
