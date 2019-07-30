@@ -17,7 +17,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -67,7 +67,7 @@ public class SpotifyController {
         spotifyService.getToken(code);
     }
     
-    @PostMapping(path = "/api/spotify/addAlbumToUser" )
+    @PutMapping(path = "/api/spotify/addAlbumToUser" )
     public HttpStatus addAlbumToUser(@RequestBody SpotifyAlbumDto album) throws Exception {
         spotifyService.saveAlbumsForCurrentUser(album.getArtist(), album.getAlbum());
         return HttpStatus.OK;

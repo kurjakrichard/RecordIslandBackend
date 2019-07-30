@@ -1,5 +1,6 @@
 package com.progmatic.recordislandbackend.controller;
 
+import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.ApiError;
 import com.progmatic.recordislandbackend.exception.SpotifyTokenNotFoundExcepion;
@@ -26,6 +27,12 @@ public class ErrorControllerAdvice {
     public ResponseEntity<ApiError> handleSpotifyTokenNotFoundExcepion(SpotifyTokenNotFoundExcepion ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(), ex.getMessage()));
+    }
+    
+    @ExceptionHandler(AlbumNotExistsException.class)
+    public ResponseEntity<ApiError> handleSpotifyAlbumNotFoundExcepion(AlbumNotExistsException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError(HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(), ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
