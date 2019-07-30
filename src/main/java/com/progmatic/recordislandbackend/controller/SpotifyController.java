@@ -6,6 +6,7 @@
 package com.progmatic.recordislandbackend.controller;
 
 import com.progmatic.recordislandbackend.dto.SpotifyAlbumDto;
+import com.progmatic.recordislandbackend.dto.SpotifyTrackResponseDto;
 import com.progmatic.recordislandbackend.service.SpotifyService;
 import com.wrapper.spotify.model_objects.specification.SavedAlbum;
 import com.wrapper.spotify.model_objects.specification.SavedTrack;
@@ -13,6 +14,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -71,5 +73,10 @@ public class SpotifyController {
     public HttpStatus addAlbumToUser(@RequestBody SpotifyAlbumDto album) throws Exception {
         spotifyService.saveAlbumsForCurrentUser(album.getArtist(), album.getAlbum());
         return HttpStatus.OK;
+    }
+    
+    @GetMapping(path = "/api/spotify/getAlbumTracks")
+    public Set<SpotifyTrackResponseDto> getAlbumTracks (SpotifyAlbumDto album) throws Exception {
+        return spotifyService.getSpotifyAlbumTracks(album.getArtist(), album.getAlbum());
     }
 }

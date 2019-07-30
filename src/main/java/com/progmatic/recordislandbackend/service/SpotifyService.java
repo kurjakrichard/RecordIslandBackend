@@ -5,21 +5,19 @@
  */
 package com.progmatic.recordislandbackend.service;
 
-import com.google.gson.JsonObject;
 import com.progmatic.recordislandbackend.config.RecordIslandProperties;
 import com.progmatic.recordislandbackend.dao.ArtistRepository;
 import com.progmatic.recordislandbackend.dao.UserRepository;
 import com.progmatic.recordislandbackend.domain.Artist;
-import static com.progmatic.recordislandbackend.domain.Artist_.id;
 import com.progmatic.recordislandbackend.domain.SpotifyAccessToken;
 import com.progmatic.recordislandbackend.domain.User;
+import com.progmatic.recordislandbackend.dto.SpotifyTrackResponseDto;
 import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
 import com.progmatic.recordislandbackend.exception.SpotifyTokenNotFoundExcepion;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.SpotifyHttpManager;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.credentials.AuthorizationCodeCredentials;
-import com.wrapper.spotify.model_objects.special.SnapshotResult;
 import com.wrapper.spotify.model_objects.specification.AlbumSimplified;
 import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
 import com.wrapper.spotify.model_objects.specification.Paging;
@@ -36,13 +34,13 @@ import org.springframework.stereotype.Service;
 import com.wrapper.spotify.requests.authorization.authorization_code.AuthorizationCodeRefreshRequest;
 import com.wrapper.spotify.requests.data.albums.GetAlbumsTracksRequest;
 import com.wrapper.spotify.requests.data.library.SaveAlbumsForCurrentUserRequest;
-import com.wrapper.spotify.requests.data.playlists.AddTracksToPlaylistRequest;
 import com.wrapper.spotify.requests.data.search.simplified.SearchAlbumsRequest;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import javax.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PathVariable;
 
 /**
  *
@@ -80,7 +78,7 @@ public class SpotifyService {
         AuthorizationCodeUriRequest authorizationCodeUriRequest = spotifyApi.authorizationCodeUri()
                 .scope("user-library-read,user-library-modify")
                 //          .state("x4xkmn9pu3j6ukrs8n")
-//                          .scope("user-read-birthdate,user-read-email")
+                //                          .scope("user-read-birthdate,user-read-email")
                 //          .show_dialog(true)
                 .build();
         final URI uri = authorizationCodeUriRequest.execute();
@@ -213,7 +211,6 @@ public class SpotifyService {
         }
     }
 
-
     public String searchForAlbumWithTracks(String artist, String album) throws IOException, SpotifyWebApiException, AlbumNotExistsException {
         if (spotifyAccestoken.getToken() == null) {
             throw new SpotifyTokenNotFoundExcepion("Token not found!");
@@ -222,7 +219,7 @@ public class SpotifyService {
         if (spotifyAccestoken.isExpired()) {
             refreshToken(spotifyAccestoken.getRefreshToken());
         }
-        
+
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
                 .setAccessToken(spotifyAccestoken.getToken())
                 .build();
@@ -255,8 +252,45 @@ public class SpotifyService {
         SaveAlbumsForCurrentUserRequest saveAlbumsForCurrentUserRequest = spotifyApi
                 .saveAlbumsForCurrentUser(searchForAlbumWithTracks(artist, album))
                 .build();
-        
+
         String string = saveAlbumsForCurrentUserRequest.execute();
+    }
+
+    public Set<SpotifyTrackResponseDto> getSpotifyAlbumTracks(String artist, String album) throws SpotifyWebApiException, IOException, AlbumNotExistsException {
+        if (spotifyAccestoken.getToken() == null) {
+            throw new SpotifyTokenNotFoundExcepion("Token not found!");
+        }
+
+        if (spotifyAccestoken.isExpired()) {
+            refreshToken(spotifyAccestoken.getRefreshToken());
+        }
+        
+        SpotifyApi spotifyApi = new SpotifyApi.Builder()
+          .setAccessToken(spotifyAccestoken.getToken())
+          .build();
+        
+        GetAlbumsTracksRequest getAlbumsTracksRequest = spotifyApi.getAlbumsTracks(searchForAlbumWithTracks(artist, album))
+//          .limit(10)
+//          .offset(0)
+//          .market(CountryCode.SE)
+          .build();
+        
+        LinkedHashSet<SpotifyTrackResponseDto> trackResponse = new LinkedHashSet<>();
+        
+        try {
+            
+            System.out.println(getAlbumsTracksRequest.getJson());
+            Paging<TrackSimplified> trackSimplifiedPaging = getAlbumsTracksRequest.execute();
+            TrackSimplified[] tracks = trackSimplifiedPaging.getItems();
+            for (TrackSimplified track : tracks) {
+                System.out.println(track.getPreviewUrl());
+                trackResponse.add(new SpotifyTrackResponseDto(track.getName(), track.getPreviewUrl()));
+            }
+            
+        } catch (IOException | SpotifyWebApiException e) {
+            
+        }
+        return trackResponse;
     }
 
 }
