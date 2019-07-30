@@ -12,6 +12,7 @@ import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import com.progmatic.recordislandbackend.exception.VerificationTokenNotFoundException;
 import java.time.LocalDateTime;
 import java.util.Calendar;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import javax.transaction.Transactional;
@@ -70,7 +71,7 @@ public class UserService implements UserDetailsService {
             authority = getAuthorityByName("ROLE_USER");
         }
         User user = new User(registration.getUsername(), passwordEncoder.encode(registration.getPassword()),
-                registration.getEmail(), registration.getLastFmUsername(), registration.getSpotifyUsername());
+                registration.getEmail(), registration.getLastFmUsername(), registration.getSpotifyUsername(), registration.hasNewsLetter());
         user.addAuthority(authority);
         userRepository.save(user);
         return user;
@@ -116,11 +117,9 @@ public class UserService implements UserDetailsService {
     }
     
     public User getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists() throws UserNotFoundException {
-        System.out.println("start");
         User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User dbUser = userRepository.getUserWithRecommendationsAndLikedAndDislikedArtistsByUsername(loggedInUser.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("User not found! [ " + loggedInUser.getUsername() + " ]"));
-        System.out.println("end");
         return dbUser;
     }
     
@@ -182,5 +181,9 @@ public class UserService implements UserDetailsService {
         verificationTokenRepository.delete(verificationToken);
         userRepository.save(user);
         return TOKEN_VALID;
+    }
+    
+    public List<User> getAllUserWithNewsLetterSubscription(){
+        return userRepository.findAllUserWithNewsLetterSubscription();
     }
 }

@@ -1,6 +1,5 @@
 package com.progmatic.recordislandbackend.domain;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
@@ -38,6 +37,21 @@ import org.springframework.security.core.userdetails.UserDetails;
             },
             subgraphs = @NamedSubgraph(name = "album.artist",
                     attributeNodes = @NamedAttributeNode(value = "artist"))
+    )
+    ,
+    @NamedEntityGraph(
+            name = "userWithAlbumRecommendationsAndLikedArtistsAndDislikedArtistsPastRecommend",
+            attributeNodes = {
+                @NamedAttributeNode(value = "albumRecommendations", subgraph = "album.artist")
+                ,
+                    @NamedAttributeNode(value = "likedArtists")
+                ,
+                    @NamedAttributeNode(value = "dislikedArtists")
+                ,
+                    @NamedAttributeNode(value = "pastAlbumRecommendations")
+            },
+            subgraphs = @NamedSubgraph(name = "album.artist",
+                    attributeNodes = @NamedAttributeNode(value = "artist"))
     )})
 public class User implements UserDetails {
 
@@ -65,9 +79,11 @@ public class User implements UserDetails {
     private String lastFmAccountName;
     private String spotifyAccountName;
     private LocalDateTime lastRecommendationUpdate;
+    private boolean hasNewsLetterSubscription;
 
     public User() {
         this.enabled = false;
+        this.hasNewsLetterSubscription = true;
     }
 
     public User(String username, String password, String email) {
@@ -77,15 +93,17 @@ public class User implements UserDetails {
         this.lastFmAccountName = "";
         this.spotifyAccountName = "";
         this.enabled = false;
+        this.hasNewsLetterSubscription = true;
     }
 
-    public User(String username, String password, String email, String lastFmAccountName, String spotifyAccountName) {
+    public User(String username, String password, String email, String lastFmAccountName, String spotifyAccountName, boolean newsLetter) {
         this.username = username;
         this.password = password;
         this.email = email;
         this.lastFmAccountName = lastFmAccountName;
         this.spotifyAccountName = spotifyAccountName;
         this.enabled = false;
+        this.hasNewsLetterSubscription = newsLetter;
     }
 
     public String getEmail() {
@@ -263,4 +281,11 @@ public class User implements UserDetails {
         this.lastRecommendationUpdate = lastRecommendationUpdate;
     }
 
+    public boolean isHasNewsLetterSubscription() {
+        return hasNewsLetterSubscription;
+    }
+
+    public void setHasNewsLetterSubscription(boolean hasNewsLetterSubscription) {
+        this.hasNewsLetterSubscription = hasNewsLetterSubscription;
+    }
 }

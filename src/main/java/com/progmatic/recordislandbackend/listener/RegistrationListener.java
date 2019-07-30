@@ -1,5 +1,6 @@
 package com.progmatic.recordislandbackend.listener;
 
+import com.progmatic.recordislandbackend.config.RecordIslandProperties;
 import com.progmatic.recordislandbackend.controller.OnRegistrationCompleteEvent;
 import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.dto.MailDTO;
@@ -9,6 +10,8 @@ import com.progmatic.recordislandbackend.service.IEmailService;
 import com.progmatic.recordislandbackend.service.UserService;
 import freemarker.template.TemplateException;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import javax.mail.MessagingException;
 import org.slf4j.Logger;
@@ -23,13 +26,16 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
 
     private final IEmailService emailService;
     private final UserService userService;
-    
+    private final RecordIslandProperties recordIslandProperties;
+
     private Logger logger = LoggerFactory.getLogger(RegistrationListener.class);
 
     @Autowired
-    public RegistrationListener(IEmailService emailService, UserService userService) {
+    public RegistrationListener(IEmailService emailService, UserService userService,
+            RecordIslandProperties recordIslandProperties) {
         this.emailService = emailService;
         this.userService = userService;
+        this.recordIslandProperties = recordIslandProperties;
     }
 
     @Override
@@ -42,8 +48,15 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
         String token = UUID.randomUUID().toString();
         userService.createVerificationTokenForUser(user, token);
 
-        MailDTO mailDTO = new MailDTO("record.islandhun@gmail.com", user.getEmail(), user.getUsername(), "Registration Confirmation", token);
-        mailDTO.setVerificationUrl("https://recordisland.herokuapp.com/verify?token=");
+        MailDTO mailDTO = new MailDTO(recordIslandProperties.getOwnEmail(), user.getEmail(), user.getUsername(), "Registration Confirmation", token);
+        mailDTO.setVerificationUrl(recordIslandProperties.getFrontend() + "/verify?token=");
+        Map model = new HashMap();
+        model.put("username", mailDTO.getName());
+        model.put("signature", "RecordIsland Team");
+        model.put("confirmationUrl", mailDTO.getVerificationUrl() + mailDTO.getVerificationToken());
+
+        mailDTO.setModel(model);
+        
         try {
             emailService.sendEmail(mailDTO, "verificationEmail");
         } catch (MessagingException ex) {

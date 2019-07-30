@@ -23,6 +23,13 @@ public class MailDTO {
         this.verificationToken = token;
     }
 
+    public MailDTO(String from, String to, String name, String subject) {
+        this.from = from;
+        this.to = to;
+        this.name = name;
+        this.subject = subject;
+    }
+
     public String getFrom() {
         return from;
     }

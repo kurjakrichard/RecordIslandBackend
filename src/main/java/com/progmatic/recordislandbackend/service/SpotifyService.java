@@ -138,7 +138,7 @@ public class SpotifyService {
                 .setAccessToken(spotifyAccestoken.getToken())
                 .build();
         final GetUsersSavedTracksRequest getUsersSavedTracksRequest = spotifyApi.getUsersSavedTracks()
-                //          .limit(10)
+                          .limit(0)
                 //          .market(CountryCode.SE)
                 //          .offset(0)
                 .build();

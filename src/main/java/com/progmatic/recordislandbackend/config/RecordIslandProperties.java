@@ -12,6 +12,8 @@ public class RecordIslandProperties {
     private String discogsSecretkey = "";
     private String spotifyClientId = "";
     private String spotifyClientSecret = "";
+    private String frontend = "";
+    private String ownEmail = "";
 
     public RecordIslandProperties() {
     }
@@ -54,5 +56,21 @@ public class RecordIslandProperties {
 
     public void setSpotifyClientSecret(String spotifyClientSecret) {
         this.spotifyClientSecret = spotifyClientSecret;
+    }
+
+    public String getFrontend() {
+        return frontend;
+    }
+
+    public void setFrontend(String frontend) {
+        this.frontend = frontend;
+    }
+
+    public String getOwnEmail() {
+        return ownEmail;
+    }
+
+    public void setOwnEmail(String ownEmail) {
+        this.ownEmail = ownEmail;
     }
 }

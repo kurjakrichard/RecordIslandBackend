@@ -23,48 +23,45 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class RecommendationsController {
-    
+
     private final RecommendationsServiceImpl recommendationsService;
     private final AlbumService albumService;
-    
+
     @Autowired
     public RecommendationsController(RecommendationsServiceImpl recommendationsService,
             AlbumService albumService) {
         this.recommendationsService = recommendationsService;
         this.albumService = albumService;
     }
-    
+
     @Deprecated
     @GetMapping(value = {"/api/discogsRecommendation"})
     public Set<Album> getUserRecommendationsFromDiscogs() throws LastFmException {
         return recommendationsService.getDiscogsRecommendations();
     }
-    
+
     @GetMapping(value = {"/api/allmusicRecommendation"})
     public List<AlbumResponseDto> getUserRecommendationsFromAllmusic() throws LastFmException, UserNotFoundException {
         return recommendationsService.getAllmusicRecommendationsFromDb();
     }
-    
-    
-    
+
     @PostMapping(value = {"/api/userAlbumRecommendations/{id}"})
     public void handlePositiveFeedback(@PathVariable int id) throws UserNotFoundException, AlbumNotExistsException {
         Album album = albumService.findAlbumById(id);
         recommendationsService.addArtistToLikedArtistsOfLoggedInUser(album.getArtist());
         recommendationsService.removeAlbumFromAlbumRecommendationsOfLoggedinUser(album);
     }
-    
+
     @DeleteMapping(value = {"/api/userAlbumRecommendations/{id}"})
     public void handleNegativeFeedback(@PathVariable int id) throws UserNotFoundException, AlbumNotExistsException {
         Album album = albumService.findAlbumById(id);
         recommendationsService.addArtistToUsersDislikedArtists(album.getArtist());
         recommendationsService.removeAlbumFromAlbumRecommendationsOfLoggedinUser(album);
     }
-    
-    
+
     @GetMapping(value = {"/api/userAlbumRecommendations"})
-    public @ResponseBody Set<AlbumResponseDto> getAlbumRecommendationsOfLoggedInUser() throws UserNotFoundException, LastFmException {
+    public @ResponseBody
+    Set<AlbumResponseDto> getAlbumRecommendationsOfLoggedInUser() throws UserNotFoundException, LastFmException {
         return recommendationsService.getRecommendationsOfLoggedInUser();
     }
-    
 }

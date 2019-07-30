@@ -40,7 +40,7 @@ public class RegistrationController {
     @GetMapping(path = "/api/genres")
     public List<GenreResponseDTO> listGenres() {
         List<GenreResponseDTO> response = lastFmServiceImpl.listGenres().stream().map(this::convertToDto).collect(Collectors.toList());
-        System.out.println(response.size());
+        //System.out.println(response.size());
         return response;
     }
 

@@ -27,6 +27,8 @@ public class RegistrationDto {
     private String lastFmUsername;
     @NotNull
     private String spotifyUsername;
+    @NotNull
+    private boolean hasNewsLetter;
 
     public RegistrationDto() {
     }
@@ -37,12 +39,13 @@ public class RegistrationDto {
         this.email = email;
     }
 
-    public RegistrationDto(String username, String password, String email, String lastFmUsername, String spotifyUsername) {
+    public RegistrationDto(String username, String password, String email, String lastFmUsername, String spotifyUsername, boolean hasNewsLetter) {
         this.username = username;
         this.password = password;
         this.email = email;
         this.lastFmUsername = lastFmUsername;
         this.spotifyUsername = spotifyUsername;
+        this.hasNewsLetter = hasNewsLetter;
     }
 
     public String getUsername() {
@@ -83,5 +86,13 @@ public class RegistrationDto {
 
     public void setSpotifyUsername(String spotifyUsername) {
         this.spotifyUsername = spotifyUsername;
+    }
+
+    public boolean hasNewsLetter() {
+        return hasNewsLetter;
+    }
+
+    public void setNewsLetter(boolean hasNewsLetter) {
+        this.hasNewsLetter = hasNewsLetter;
     }
 }

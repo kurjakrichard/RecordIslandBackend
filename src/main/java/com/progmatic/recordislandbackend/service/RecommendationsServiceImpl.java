@@ -76,9 +76,7 @@ public class RecommendationsServiceImpl {
         return resultSet;
     }
 
-  
-
-    @Scheduled(cron = "0 44 13 * * ?")
+    //@Scheduled(cron = "0 44 13 * * ?")
     @Transactional
     public void getAllmusicReleasesFromAllMusicDotCom() throws ArtistNotExistsException {
 
@@ -116,6 +114,7 @@ public class RecommendationsServiceImpl {
         }
 
     }
+
     @Transactional
     public List<AlbumResponseDto> getAllmusicRecommendationsFromDb() throws LastFmException, UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
@@ -164,6 +163,23 @@ public class RecommendationsServiceImpl {
     }
 
     @Transactional
+    public void updateUsersAlbumRecommendations(User user) throws UserNotFoundException {
+        List<Album> allmusicAlbums = albumService.getAllAlbumsWithSimilarArtistsReleasedAfterLoggedInUsersLastRecommendationUpdate(LocalDateTime.now());
+        Set<Album> tempAlbumRecommendations = new HashSet<>();
+        for (Album album : allmusicAlbums) {
+            Set<String> similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
+            if (similarArtists != null && !user.getPastAlbumRecommendations().contains(album)
+                    && (user.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
+                    || user.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
+                tempAlbumRecommendations.add(album);
+            }
+        }
+        user.addAlbumsToAlbumRecommendations(tempAlbumRecommendations);
+        user.addAlbumsToPastAlbumRecommendations(tempAlbumRecommendations);
+        user.setLastRecommendationUpdate(LocalDateTime.now());
+    }
+
+    @Transactional
     public void addArtistToLikedArtistsOfLoggedInUser(Artist artist) throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactions();
         loggedInUser.addArtistToLikedArtists(artist);
@@ -194,7 +210,5 @@ public class RecommendationsServiceImpl {
         }
         return resultSet;
     }
-    
-    
-    
+
 }
