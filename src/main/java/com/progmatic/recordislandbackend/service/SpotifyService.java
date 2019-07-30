@@ -5,21 +5,28 @@
  */
 package com.progmatic.recordislandbackend.service;
 
+import com.google.gson.JsonObject;
 import com.progmatic.recordislandbackend.config.RecordIslandProperties;
 import com.progmatic.recordislandbackend.dao.ArtistRepository;
 import com.progmatic.recordislandbackend.dao.UserRepository;
 import com.progmatic.recordislandbackend.domain.Artist;
+import static com.progmatic.recordislandbackend.domain.Artist_.id;
 import com.progmatic.recordislandbackend.domain.SpotifyAccessToken;
 import com.progmatic.recordislandbackend.domain.User;
+import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
 import com.progmatic.recordislandbackend.exception.SpotifyTokenNotFoundExcepion;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.SpotifyHttpManager;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.credentials.AuthorizationCodeCredentials;
+import com.wrapper.spotify.model_objects.special.SnapshotResult;
+import com.wrapper.spotify.model_objects.specification.AlbumSimplified;
 import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
+import com.wrapper.spotify.model_objects.specification.Paging;
 import java.net.URI;
 import com.wrapper.spotify.model_objects.specification.SavedAlbum;
 import com.wrapper.spotify.model_objects.specification.SavedTrack;
+import com.wrapper.spotify.model_objects.specification.TrackSimplified;
 import com.wrapper.spotify.requests.authorization.authorization_code.AuthorizationCodeRequest;
 import com.wrapper.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
 import com.wrapper.spotify.requests.data.library.GetCurrentUsersSavedAlbumsRequest;
@@ -27,11 +34,15 @@ import com.wrapper.spotify.requests.data.library.GetUsersSavedTracksRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.wrapper.spotify.requests.authorization.authorization_code.AuthorizationCodeRefreshRequest;
+import com.wrapper.spotify.requests.data.albums.GetAlbumsTracksRequest;
+import com.wrapper.spotify.requests.data.library.SaveAlbumsForCurrentUserRequest;
+import com.wrapper.spotify.requests.data.playlists.AddTracksToPlaylistRequest;
+import com.wrapper.spotify.requests.data.search.simplified.SearchAlbumsRequest;
 import java.io.IOException;
 import java.util.NoSuchElementException;
-import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.PathVariable;
 
 /**
  *
@@ -41,7 +52,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class SpotifyService {
 
     private final RecordIslandProperties properties;
-    private SpotifyAccessToken spotifyAccestoken;
+    private static SpotifyAccessToken spotifyAccestoken;
     private URI spotifyRedirectUri = SpotifyHttpManager.makeUri("http://localhost:4200/api/spotify/callback");
     private final UserService userService;
     private ArtistRepository artistRepository;
@@ -50,12 +61,14 @@ public class SpotifyService {
 //    @PersistenceContext
 //    private EntityManager em;
     @Autowired
-    public SpotifyService(RecordIslandProperties properties, SpotifyAccessToken spotifyAccestoken, UserService userService, ArtistRepository artistRepository, UserRepository userRepository) {
+    public SpotifyService(RecordIslandProperties properties, SpotifyAccessToken spotifyAccestoken, UserService userService,
+            ArtistRepository artistRepository, UserRepository userRepository) {
         this.properties = properties;
         this.spotifyAccestoken = spotifyAccestoken;
         this.userService = userService;
         this.artistRepository = artistRepository;
         this.userRepository = userRepository;
+
     }
 
     public URI getAuthorizationCodeUriRequest() {
@@ -125,8 +138,8 @@ public class SpotifyService {
     }
 
     public SavedTrack[] getSavedTracks() throws SpotifyWebApiException, IOException {
-        
-        if(spotifyAccestoken.getToken() == null) {
+
+        if (spotifyAccestoken.getToken() == null) {
             throw new SpotifyTokenNotFoundExcepion("Token not found!");
         }
 
@@ -152,7 +165,7 @@ public class SpotifyService {
             ArtistSimplified[] artists = track.getTrack().getArtists();
             Artist artist;
             for (ArtistSimplified artistSname : artists) {
-                String artistName = artistSname.getName();              
+                String artistName = artistSname.getName();
                 System.out.println("Artist from track: " + artistName);
                 try {
                     artist = artistRepository.findByName(artistName).get();
@@ -199,4 +212,51 @@ public class SpotifyService {
             }
         }
     }
+
+
+    public String searchForAlbumWithTracks(String artist, String album) throws IOException, SpotifyWebApiException, AlbumNotExistsException {
+        if (spotifyAccestoken.getToken() == null) {
+            throw new SpotifyTokenNotFoundExcepion("Token not found!");
+        }
+
+        if (spotifyAccestoken.isExpired()) {
+            refreshToken(spotifyAccestoken.getRefreshToken());
+        }
+        
+        SpotifyApi spotifyApi = new SpotifyApi.Builder()
+                .setAccessToken(spotifyAccestoken.getToken())
+                .build();
+        SearchAlbumsRequest searchAlbumsRequest = spotifyApi.searchAlbums(artist + " " + album)
+                //          .market(CountryCode.SE)
+                //          .limit(10)
+                //          .offset(0)
+                .build();
+
+        AlbumSimplified[] spotifyAlbum = searchAlbumsRequest.execute().getItems();
+        if (spotifyAlbum.length == 0) {
+            throw new AlbumNotExistsException(album + " not found!");
+        }
+        return spotifyAlbum[0].getId();
+
+    }
+
+    public void saveAlbumsForCurrentUser(String artist, String album) throws SpotifyWebApiException, IOException, AlbumNotExistsException {
+        if (spotifyAccestoken.getToken() == null) {
+            throw new SpotifyTokenNotFoundExcepion("Token not found!");
+        }
+
+        if (spotifyAccestoken.isExpired()) {
+            refreshToken(spotifyAccestoken.getRefreshToken());
+        }
+
+        SpotifyApi spotifyApi = new SpotifyApi.Builder()
+                .setAccessToken(spotifyAccestoken.getToken())
+                .build();
+        SaveAlbumsForCurrentUserRequest saveAlbumsForCurrentUserRequest = spotifyApi
+                .saveAlbumsForCurrentUser(searchForAlbumWithTracks(artist, album))
+                .build();
+        
+        String string = saveAlbumsForCurrentUserRequest.execute();
+    }
+
 }

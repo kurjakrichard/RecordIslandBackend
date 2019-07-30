@@ -6,6 +6,7 @@
 package com.progmatic.recordislandbackend.controller;
 
 import com.progmatic.recordislandbackend.domain.SpotifyAccessToken;
+import com.progmatic.recordislandbackend.dto.SpotifyAlbumDto;
 import com.progmatic.recordislandbackend.service.SpotifyService;
 import com.wrapper.spotify.model_objects.specification.SavedAlbum;
 import com.wrapper.spotify.model_objects.specification.SavedTrack;
@@ -18,6 +19,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -64,5 +66,11 @@ public class SpotifyController {
     @GetMapping(path = "/api/spotify/callback")
     public void callback(@RequestParam String code) throws Exception {
         spotifyService.getToken(code);
+    }
+    
+    @PostMapping(path = "/api/spotify/addAlbumToUser" )
+    public HttpStatus addAlbumToUser(@RequestParam SpotifyAlbumDto album) throws Exception {
+        spotifyService.saveAlbumsForCurrentUser(album.getArtist(), album.getAlbum());
+        return HttpStatus.OK;
     }
 }
