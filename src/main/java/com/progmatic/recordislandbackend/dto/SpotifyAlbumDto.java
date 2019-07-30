@@ -18,6 +18,11 @@ public class SpotifyAlbumDto {
         this.album = album;
     }
 
+    public SpotifyAlbumDto() {
+    }
+    
+    
+
     public String getArtist() {
         return artist;
     }

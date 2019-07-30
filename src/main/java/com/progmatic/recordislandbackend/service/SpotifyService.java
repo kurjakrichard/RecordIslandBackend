@@ -78,9 +78,9 @@ public class SpotifyService {
                 .setRedirectUri(spotifyRedirectUri)
                 .build();
         AuthorizationCodeUriRequest authorizationCodeUriRequest = spotifyApi.authorizationCodeUri()
-                .scope("user-library-read")
+                .scope("user-library-read,user-library-modify")
                 //          .state("x4xkmn9pu3j6ukrs8n")
-                //          .scope("user-read-birthdate,user-read-email")
+//                          .scope("user-read-birthdate,user-read-email")
                 //          .show_dialog(true)
                 .build();
         final URI uri = authorizationCodeUriRequest.execute();
