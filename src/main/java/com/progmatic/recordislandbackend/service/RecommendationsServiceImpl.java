@@ -157,6 +157,7 @@ public class RecommendationsServiceImpl {
                 tempAlbumRecommendations.add(album);
             }
         }
+        
         loggedInUser.addAlbumsToAlbumRecommendations(tempAlbumRecommendations);
         loggedInUser.addAlbumsToPastAlbumRecommendations(tempAlbumRecommendations);
         loggedInUser.setLastRecommendationUpdate(LocalDateTime.now());
