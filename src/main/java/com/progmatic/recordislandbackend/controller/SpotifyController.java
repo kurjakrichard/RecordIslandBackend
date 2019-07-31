@@ -77,9 +77,8 @@ public class SpotifyController {
     }
     
     @PutMapping(path = "/api/spotify/addAlbumToUser")
-    public HttpStatus addAlbumToUser(@RequestBody SpotifyAlbumDto album) throws Exception {
+    public void addAlbumToUser(@RequestBody SpotifyAlbumDto album) throws Exception {
         spotifyService.saveAlbumsForCurrentUser(album.getArtist(), album.getAlbum());
-        return HttpStatus.OK;
     }
     
     @GetMapping(path = "/api/spotify/getAlbumTracks")
@@ -93,11 +92,10 @@ public class SpotifyController {
     }
     
     @PostMapping(path = "/api/spotify/addAlbumToPlaylist")
-    public HttpStatus addAlbumToPlaylist(@RequestBody SpotifyPlaylistAndAlbumDto playlist) throws IOException, SpotifyWebApiException, AlbumNotExistsException {
+    public void addAlbumToPlaylist(@RequestBody SpotifyPlaylistAndAlbumDto playlist) throws IOException, SpotifyWebApiException, AlbumNotExistsException {
+        System.out.println("/api/spotify/addAlbumToPlaylist");
         SpotifyPlaylistDto playlistDto = new SpotifyPlaylistDto();
-        playlistDto.setName(playlist.getPlaylistName());
         playlistDto.setId(playlist.getPlaylistId());
         spotifyService.addTracksToSpotifyPlaylist(playlistDto, playlist.getArtist(), playlist.getAlbum());
-        return HttpStatus.OK;
     }
 }

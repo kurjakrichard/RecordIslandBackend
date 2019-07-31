@@ -84,7 +84,7 @@ public class SpotifyService {
                 .setRedirectUri(spotifyRedirectUri)
                 .build();
         AuthorizationCodeUriRequest authorizationCodeUriRequest = spotifyApi.authorizationCodeUri()
-                .scope("user-library-read,user-library-modify")
+                .scope("user-library-read,user-library-modify,playlist-modify-public,playlist-modify-private")
                 //          .state("x4xkmn9pu3j6ukrs8n")
                 //                          .scope("user-read-birthdate,user-read-email")
                 //          .show_dialog(true)
@@ -157,7 +157,7 @@ public class SpotifyService {
                 .setAccessToken(spotifyAccestoken.getToken())
                 .build();
         final GetUsersSavedTracksRequest getUsersSavedTracksRequest = spotifyApi.getUsersSavedTracks()
-                          .limit(0)
+                //.limit(0)
                 //          .market(CountryCode.SE)
                 //          .offset(0)
                 .build();
@@ -225,9 +225,8 @@ public class SpotifyService {
         }
 
         if (spotifyAccestoken.isExpired()) {
-            refreshToken(spotifyAccestoken.getRefreshToken());
+            refreshToken(spotifyAccestoken.getRefreshToken()); 
         }
-
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
                 .setAccessToken(spotifyAccestoken.getToken())
                 .build();
@@ -287,7 +286,6 @@ public class SpotifyService {
 
         try {
 
-            System.out.println(getAlbumsTracksRequest.getJson());
             Paging<TrackSimplified> trackSimplifiedPaging = getAlbumsTracksRequest.execute();
             TrackSimplified[] tracks = trackSimplifiedPaging.getItems();
             for (TrackSimplified track : tracks) {
@@ -335,7 +333,7 @@ public class SpotifyService {
         }
         return uris;
     }
-    
+
     public String[] getSpotifyAlbumTracksUrisArray(String artist, String album) throws SpotifyWebApiException, IOException, AlbumNotExistsException {
         if (spotifyAccestoken.getToken() == null) {
             throw new SpotifyTokenNotFoundExcepion("Token not found!");
@@ -357,18 +355,13 @@ public class SpotifyService {
 
         ArrayList<String> uris = new ArrayList<>();
 
-        try {
-
-            System.out.println(getAlbumsTracksRequest.getJson());
-            Paging<TrackSimplified> trackSimplifiedPaging = getAlbumsTracksRequest.execute();
-            TrackSimplified[] tracks = trackSimplifiedPaging.getItems();
-            for (TrackSimplified track : tracks) {
-                uris.add(track.getUri());
-            }
-
-        } catch (IOException | SpotifyWebApiException e) {
-
+        System.out.println(getAlbumsTracksRequest.getJson());
+        Paging<TrackSimplified> trackSimplifiedPaging = getAlbumsTracksRequest.execute();
+        TrackSimplified[] tracks = trackSimplifiedPaging.getItems();
+        for (TrackSimplified track : tracks) {
+            uris.add(track.getUri());
         }
+
         String[] uriArray = new String[uris.size()];
         for (int i = 0; i < uris.size(); i++) {
             uriArray[i] = uris.get(i);
@@ -401,9 +394,9 @@ public class SpotifyService {
         for (int i = 0; i < ps.length; i++) {
             playlistNames.add(new SpotifyPlaylistResponseDto(ps[i].getName(), ps[i].getId()));
         }
-        return playlistNames;       
+        return playlistNames;
     }
-    
+
 //    public void getSpotifyPlaylistByName() throws SpotifyWebApiException, IOException {
 //        if (spotifyAccestoken.getToken() == null) {
 //            throw new SpotifyTokenNotFoundExcepion("Token not found!");
@@ -417,7 +410,6 @@ public class SpotifyService {
 //                .setAccessToken(spotifyAccestoken.getToken())
 //                .build();
 //    }
-        
     public void addTracksToSpotifyPlaylist(SpotifyPlaylistDto playlist, String artist, String album) throws IOException, SpotifyWebApiException, AlbumNotExistsException {
         if (spotifyAccestoken.getToken() == null) {
             throw new SpotifyTokenNotFoundExcepion("Token not found!");
@@ -430,15 +422,15 @@ public class SpotifyService {
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
                 .setAccessToken(spotifyAccestoken.getToken())
                 .build();
-        
-        AddTracksToPlaylistRequest addTracksToPlaylistRequest = spotifyApi
-          .addTracksToPlaylist(playlist.getId(), getSpotifyAlbumTracksUrisArray(artist, album))
-//          .position(0)
-          .build();
-        
-        addTracksToPlaylistRequest.execute();
-        
-    }
 
+        AddTracksToPlaylistRequest addTracksToPlaylistRequest = spotifyApi
+                .addTracksToPlaylist(playlist.getId(), getSpotifyAlbumTracksUrisArray(artist, album))
+                //          .position(0)
+
+                .build();
+
+        SnapshotResult result = addTracksToPlaylistRequest.execute();
+
+    }
 
 }
