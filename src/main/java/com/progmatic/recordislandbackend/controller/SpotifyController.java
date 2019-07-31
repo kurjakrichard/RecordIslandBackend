@@ -8,6 +8,7 @@ package com.progmatic.recordislandbackend.controller;
 import com.progmatic.recordislandbackend.dto.SpotifyAlbumDto;
 import com.progmatic.recordislandbackend.dto.SpotifyPlaylistAndAlbumDto;
 import com.progmatic.recordislandbackend.dto.SpotifyPlaylistDto;
+import com.progmatic.recordislandbackend.dto.SpotifyPlaylistResponseDto;
 import com.progmatic.recordislandbackend.dto.SpotifyTrackResponseDto;
 import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
 import com.progmatic.recordislandbackend.service.SpotifyService;
@@ -15,7 +16,6 @@ import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.SavedAlbum;
 import com.wrapper.spotify.model_objects.specification.SavedTrack;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -88,8 +88,8 @@ public class SpotifyController {
     }
     
     @GetMapping(path = "/api/spotify/getUserPlaylists")
-    public HashMap<String, String> getUserPlaylists() throws SpotifyWebApiException, IOException {
-        return spotifyService.GetListOfCurrentUsersPlaylists();
+    public List<SpotifyPlaylistResponseDto> getUserPlaylists() throws SpotifyWebApiException, IOException {
+        return spotifyService.getListOfCurrentUsersPlaylists();
     }
     
     @PostMapping(path = "/api/spotify/addAlbumToPlaylist")

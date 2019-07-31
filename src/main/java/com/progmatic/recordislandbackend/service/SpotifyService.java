@@ -12,6 +12,7 @@ import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.domain.SpotifyAccessToken;
 import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.dto.SpotifyPlaylistDto;
+import com.progmatic.recordislandbackend.dto.SpotifyPlaylistResponseDto;
 import com.progmatic.recordislandbackend.dto.SpotifyTrackResponseDto;
 import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
 import com.progmatic.recordislandbackend.exception.SpotifyTokenNotFoundExcepion;
@@ -374,7 +375,7 @@ public class SpotifyService {
         return uriArray;
     }
 
-    public HashMap<String, String> GetListOfCurrentUsersPlaylists() throws SpotifyWebApiException, IOException {
+    public ArrayList<SpotifyPlaylistResponseDto> getListOfCurrentUsersPlaylists() throws SpotifyWebApiException, IOException {
         if (spotifyAccestoken.getToken() == null) {
             throw new SpotifyTokenNotFoundExcepion("Token not found!");
         }
@@ -395,9 +396,9 @@ public class SpotifyService {
 
         Paging<PlaylistSimplified> playlistSimplifiedPaging = getListOfCurrentUsersPlaylistsRequest.execute();
         PlaylistSimplified[] ps = playlistSimplifiedPaging.getItems();
-        HashMap<String, String> playlistNames = new HashMap();
+        ArrayList<SpotifyPlaylistResponseDto> playlistNames = new ArrayList<>();
         for (int i = 0; i < ps.length; i++) {
-            playlistNames.put(ps[i].getName(), ps[i].getId());
+            playlistNames.add(new SpotifyPlaylistResponseDto(ps[i].getName(), ps[i].getId()));
         }
         return playlistNames;       
     }
