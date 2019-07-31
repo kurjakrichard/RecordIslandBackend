@@ -41,8 +41,8 @@ import com.wrapper.spotify.requests.data.playlists.GetListOfCurrentUsersPlaylist
 import com.wrapper.spotify.requests.data.search.simplified.SearchAlbumsRequest;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.transaction.Transactional;
@@ -374,7 +374,7 @@ public class SpotifyService {
         return uriArray;
     }
 
-    public ArrayList<String> GetListOfCurrentUsersPlaylists() throws SpotifyWebApiException, IOException {
+    public HashMap<String, String> GetListOfCurrentUsersPlaylists() throws SpotifyWebApiException, IOException {
         if (spotifyAccestoken.getToken() == null) {
             throw new SpotifyTokenNotFoundExcepion("Token not found!");
         }
@@ -395,9 +395,9 @@ public class SpotifyService {
 
         Paging<PlaylistSimplified> playlistSimplifiedPaging = getListOfCurrentUsersPlaylistsRequest.execute();
         PlaylistSimplified[] ps = playlistSimplifiedPaging.getItems();
-        ArrayList<String> playlistNames = new ArrayList();
+        HashMap<String, String> playlistNames = new HashMap();
         for (int i = 0; i < ps.length; i++) {
-            playlistNames.add(ps[i].getName());
+            playlistNames.put(ps[i].getName(), ps[i].getId());
         }
         return playlistNames;       
     }

@@ -88,7 +88,7 @@ public class SpotifyController {
     }
     
     @GetMapping(path = "/api/spotify/getUserPlaylists")
-    public ArrayList<String> getUserPlaylists() throws SpotifyWebApiException, IOException {
+    public HashMap<String, String> getUserPlaylists() throws SpotifyWebApiException, IOException {
         return spotifyService.GetListOfCurrentUsersPlaylists();
     }
     
@@ -96,6 +96,7 @@ public class SpotifyController {
     public HttpStatus addAlbumToPlaylist(@RequestBody SpotifyPlaylistAndAlbumDto playlist) throws IOException, SpotifyWebApiException, AlbumNotExistsException {
         SpotifyPlaylistDto playlistDto = new SpotifyPlaylistDto();
         playlistDto.setName(playlist.getPlaylistName());
+        playlistDto.setId(playlist.getPlaylistId());
         spotifyService.addTracksToSpotifyPlaylist(playlistDto, playlist.getArtist(), playlist.getAlbum());
         return HttpStatus.OK;
     }
