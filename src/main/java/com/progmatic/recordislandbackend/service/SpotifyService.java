@@ -20,6 +20,7 @@ import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.SpotifyHttpManager;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.credentials.AuthorizationCodeCredentials;
+import com.wrapper.spotify.model_objects.special.SnapshotResult;
 import com.wrapper.spotify.model_objects.specification.AlbumSimplified;
 import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
 import com.wrapper.spotify.model_objects.specification.Paging;
@@ -403,19 +404,19 @@ public class SpotifyService {
         return playlistNames;       
     }
     
-    public void getSpotifyPlaylistByName() throws SpotifyWebApiException, IOException {
-        if (spotifyAccestoken.getToken() == null) {
-            throw new SpotifyTokenNotFoundExcepion("Token not found!");
-        }
-
-        if (spotifyAccestoken.isExpired()) {
-            refreshToken(spotifyAccestoken.getRefreshToken());
-        }
-        
-        SpotifyApi spotifyApi = new SpotifyApi.Builder()
-                .setAccessToken(spotifyAccestoken.getToken())
-                .build();
-    }
+//    public void getSpotifyPlaylistByName() throws SpotifyWebApiException, IOException {
+//        if (spotifyAccestoken.getToken() == null) {
+//            throw new SpotifyTokenNotFoundExcepion("Token not found!");
+//        }
+//
+//        if (spotifyAccestoken.isExpired()) {
+//            refreshToken(spotifyAccestoken.getRefreshToken());
+//        }
+//        
+//        SpotifyApi spotifyApi = new SpotifyApi.Builder()
+//                .setAccessToken(spotifyAccestoken.getToken())
+//                .build();
+//    }
         
     public void addTracksToSpotifyPlaylist(SpotifyPlaylistDto playlist, String artist, String album) throws IOException, SpotifyWebApiException, AlbumNotExistsException {
         if (spotifyAccestoken.getToken() == null) {
@@ -435,6 +436,7 @@ public class SpotifyService {
 //          .position(0)
           .build();
         
+        addTracksToPlaylistRequest.execute();
         
     }
 
