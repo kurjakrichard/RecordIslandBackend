@@ -49,20 +49,23 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class SpotifyService {
 
     private final RecordIslandProperties properties;
-    private static SpotifyAccessToken spotifyAccestoken;
-    private URI spotifyRedirectUri = SpotifyHttpManager.makeUri("http://localhost:4200/api/spotify/callback");
+    private final SpotifyAccessToken spotifyAccestoken;
+    private final RecordIslandProperties recordIslandProperties;
+    private URI spotifyRedirectUri;
     private final UserService userService;
     private ArtistRepository artistRepository;
     private UserRepository userRepository;
 
     @Autowired
     public SpotifyService(RecordIslandProperties properties, SpotifyAccessToken spotifyAccestoken, UserService userService,
-            ArtistRepository artistRepository, UserRepository userRepository) {
+            ArtistRepository artistRepository, UserRepository userRepository, RecordIslandProperties recordIslandProperties) {
         this.properties = properties;
         this.spotifyAccestoken = spotifyAccestoken;
         this.userService = userService;
         this.artistRepository = artistRepository;
         this.userRepository = userRepository;
+        this.recordIslandProperties = recordIslandProperties;
+        this.spotifyRedirectUri = SpotifyHttpManager.makeUri(recordIslandProperties.getSpotifyRedirectUrl());
 
     }
 
