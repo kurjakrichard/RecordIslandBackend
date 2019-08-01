@@ -80,7 +80,6 @@ public class User implements UserDetails {
     @ManyToMany
     private Set<Album> pastAlbumRecommendations = new HashSet<>();
     private String lastFmAccountName;
-    private String spotifyAccountName;
     private LocalDateTime lastRecommendationUpdate;
     private boolean hasNewsLetterSubscription;
 
@@ -94,17 +93,15 @@ public class User implements UserDetails {
         this.password = password;
         this.email = email;
         this.lastFmAccountName = "";
-        this.spotifyAccountName = "";
         this.enabled = false;
         this.hasNewsLetterSubscription = true;
     }
 
-    public User(String username, String password, String email, String lastFmAccountName, String spotifyAccountName, boolean newsLetter) {
+    public User(String username, String password, String email, String lastFmAccountName, boolean newsLetter) {
         this.username = username;
         this.password = password;
         this.email = email;
         this.lastFmAccountName = lastFmAccountName;
-        this.spotifyAccountName = spotifyAccountName;
         this.enabled = false;
         this.hasNewsLetterSubscription = newsLetter;
     }
@@ -214,14 +211,6 @@ public class User implements UserDetails {
 
     public void setLastFmAccountName(String lastFmAccountName) {
         this.lastFmAccountName = lastFmAccountName;
-    }
-
-    public String getSpotifyAccountName() {
-        return spotifyAccountName;
-    }
-
-    public void setSpotifyAccountName(String spotifyAccountName) {
-        this.spotifyAccountName = spotifyAccountName;
     }
 
     public Set<Album> getAlbumRecommendations() {

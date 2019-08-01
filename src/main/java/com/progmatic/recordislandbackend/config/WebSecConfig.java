@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -47,10 +48,10 @@ public class WebSecConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/recordisland", "/register", "/login", "/verify").permitAll()
-                .antMatchers("/css/*", "/js/*", "/images/*", "/favicon.ico").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .logout();
+                .logout()
+                .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler());;
 
     }
 

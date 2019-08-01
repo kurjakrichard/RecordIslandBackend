@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,7 +39,6 @@ public class RegistrationController {
     @GetMapping(path = "/api/genres")
     public List<GenreResponseDTO> listGenres() {
         List<GenreResponseDTO> response = lastFmServiceImpl.listGenres().stream().map(this::convertToDto).collect(Collectors.toList());
-        //System.out.println(response.size());
         return response;
     }
 
@@ -52,12 +50,6 @@ public class RegistrationController {
     @GetMapping(path = "/api/topartists")
     public List<String> listTopArtistsByGenre(@RequestParam String genre) {
         return lastFmServiceImpl.listTopArtistsByGenre(genre);
-    }
-
-    @GetMapping(path = "/api/getlastfmhistory")
-    public HttpStatus saveLastFmHistory(@RequestParam String username) {
-        lastFmServiceImpl.saveLastFmHistory(lastFmServiceImpl.getLastFmHistory(username));
-        return HttpStatus.OK;
     }
 
     @GetMapping(path = "/api/discogs")
