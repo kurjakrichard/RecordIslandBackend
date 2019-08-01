@@ -1,10 +1,16 @@
 package com.progmatic.recordislandbackend.controller;
 
 import com.progmatic.recordislandbackend.dto.SpotifyAlbumDto;
+import com.progmatic.recordislandbackend.dto.SpotifyPlaylistAndAlbumDto;
+import com.progmatic.recordislandbackend.dto.SpotifyPlaylistDto;
+import com.progmatic.recordislandbackend.dto.SpotifyPlaylistResponseDto;
 import com.progmatic.recordislandbackend.dto.SpotifyTrackResponseDto;
+import com.progmatic.recordislandbackend.exception.AlbumNotExistsException;
 import com.progmatic.recordislandbackend.service.SpotifyService;
+import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.SavedAlbum;
 import com.wrapper.spotify.model_objects.specification.SavedTrack;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +20,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -64,14 +71,26 @@ public class SpotifyController {
         spotifyService.getToken(code);
     }
     
-    @PutMapping(path = "/api/spotify/addAlbumToUser" )
-    public HttpStatus addAlbumToUser(@RequestBody SpotifyAlbumDto album) throws Exception {
+    @PutMapping(path = "/api/spotify/addAlbumToUser")
+    public void addAlbumToUser(@RequestBody SpotifyAlbumDto album) throws Exception {
         spotifyService.saveAlbumsForCurrentUser(album.getArtist(), album.getAlbum());
-        return HttpStatus.OK;
     }
     
     @GetMapping(path = "/api/spotify/getAlbumTracks")
     public Set<SpotifyTrackResponseDto> getAlbumTracks (SpotifyAlbumDto album) throws Exception {
         return spotifyService.getSpotifyAlbumTracks(album.getArtist(), album.getAlbum());
+    }
+    
+    @GetMapping(path = "/api/spotify/getUserPlaylists")
+    public List<SpotifyPlaylistResponseDto> getUserPlaylists() throws SpotifyWebApiException, IOException {
+        return spotifyService.getListOfCurrentUsersPlaylists();
+    }
+    
+    @PostMapping(path = "/api/spotify/addAlbumToPlaylist")
+    public void addAlbumToPlaylist(@RequestBody SpotifyPlaylistAndAlbumDto playlist) throws IOException, SpotifyWebApiException, AlbumNotExistsException {
+        System.out.println("/api/spotify/addAlbumToPlaylist");
+        SpotifyPlaylistDto playlistDto = new SpotifyPlaylistDto();
+        playlistDto.setId(playlist.getPlaylistId());
+        spotifyService.addTracksToSpotifyPlaylist(playlistDto, playlist.getArtist(), playlist.getAlbum());
     }
 }
