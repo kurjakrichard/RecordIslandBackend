@@ -61,7 +61,7 @@ public class RecommendationsController {
         recommendationsService.removeAlbumFromAlbumRecommendationsOfLoggedinUser(album);
     }
 
-    @PatchMapping(value = {"/api/userAlbumRecommendations"})
+    @PatchMapping(value = {"/api/userAlbumRecommendations/{id}"})
     public void handleNeutralFeedback(@PathVariable int id) throws UserNotFoundException, AlbumNotExistsException {
         Album album = albumService.findAlbumById(id);
         recommendationsService.removeAlbumFromAlbumRecommendationsOfLoggedinUser(album);
