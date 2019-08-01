@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -56,12 +57,20 @@ public class RecommendationsController {
     public void handleNegativeFeedback(@PathVariable int id) throws UserNotFoundException, AlbumNotExistsException {
         Album album = albumService.findAlbumById(id);
         recommendationsService.addArtistToUsersDislikedArtists(album.getArtist());
+        recommendationsService.removeArtistFromLikedArtistsOfLoggedinUser(album.getArtist());
         recommendationsService.removeAlbumFromAlbumRecommendationsOfLoggedinUser(album);
     }
 
+    @PutMapping(value = {"/api/userAlbumRecommendations"})
+    public void handleNeutralFeedback(@PathVariable int id) throws UserNotFoundException, AlbumNotExistsException {
+        Album album = albumService.findAlbumById(id);
+        recommendationsService.removeAlbumFromAlbumRecommendationsOfLoggedinUser(album);
+    }
+    
     @GetMapping(value = {"/api/userAlbumRecommendations"})
     public @ResponseBody
     Set<AlbumResponseDto> getAlbumRecommendationsOfLoggedInUser() throws UserNotFoundException, LastFmException {
         return recommendationsService.getRecommendationsOfLoggedInUser();
     }
+    
 }
