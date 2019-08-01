@@ -40,9 +40,6 @@ import org.springframework.security.core.userdetails.UserDetails;
                 ,
                     @NamedAttributeNode(value = "dislikedArtists")
                 ,
-                    @NamedAttributeNode(value = "pastAlbumRecommendations", subgraph = "album.artist"),
-
-                    @NamedAttributeNode(value = "dislikedArtists")
 //                    @NamedAttributeNode(value = "pastAlbumRecommendations"/*, subgraph = "album.artist"*/)
                 
             },
