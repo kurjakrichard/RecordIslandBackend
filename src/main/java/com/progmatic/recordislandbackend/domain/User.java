@@ -1,9 +1,13 @@
 package com.progmatic.recordislandbackend.domain;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,6 +18,7 @@ import javax.persistence.NamedAttributeNode;
 import javax.persistence.NamedEntityGraph;
 import javax.persistence.NamedEntityGraphs;
 import javax.persistence.NamedSubgraph;
+import javax.persistence.OneToMany;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,11 +38,11 @@ import org.springframework.security.core.userdetails.UserDetails;
                 ,
                     @NamedAttributeNode(value = "likedArtists")
                 ,
-                    @NamedAttributeNode(value = "dislikedArtists"),
+                    @NamedAttributeNode(value = "dislikedArtists")
+                ,
                     @NamedAttributeNode(value = "pastAlbumRecommendations", subgraph = "album.artist")
-                
+
             },
-            
             subgraphs = @NamedSubgraph(name = "album.artist",
                     attributeNodes = @NamedAttributeNode(value = "artist"))
     )
@@ -62,6 +67,7 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String email;
+    @Column(unique = true)
     private String username;
     private String password;
     @Column(name = "enabled")
@@ -71,8 +77,12 @@ public class User implements UserDetails {
     private LocalDateTime createDate;
     @ManyToMany
     private Set<Authority> authorities = new HashSet<>();
-    @ManyToMany
-    private Set<Artist> likedArtists = new HashSet<>();
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<UserLikedArtists> likedArtists = new ArrayList<>();
     @ManyToMany
     private Set<Artist> dislikedArtists = new HashSet<>();
     @ManyToMany
@@ -160,16 +170,37 @@ public class User implements UserDetails {
         this.id = id;
     }
 
-    public Set<Artist> getLikedArtists() {
+    public List<UserLikedArtists> getLikedArtists() {
         return likedArtists;
     }
 
-    public void setLikedArtists(Set<Artist> likedArtists) {
+    public void setLikedArtists(List<UserLikedArtists> likedArtists) {
         this.likedArtists = likedArtists;
     }
 
     public void addArtistToLikedArtists(Artist artist) {
-        this.likedArtists.add(artist);
+        UserLikedArtists userLikedArtists = new UserLikedArtists(this, artist);
+        this.likedArtists.add(userLikedArtists);
+    }
+
+    public void addArtistToLikedArtistsFromLastFm(Artist artist) {
+        UserLikedArtists userLikedArtists = new UserLikedArtists(this, artist);
+        userLikedArtists.setFromLastFm(true);
+        this.likedArtists.add(userLikedArtists);
+    }
+
+    public void removeArtistFromLikedArtists(Artist artist) {
+        for (Iterator<UserLikedArtists> iterator = likedArtists.iterator();
+                iterator.hasNext();) {
+            UserLikedArtists userLikedArtists = iterator.next();
+
+            if (userLikedArtists.getUser().equals(this)
+                    && userLikedArtists.getArtist().equals(artist)) {
+                iterator.remove();
+                userLikedArtists.setUser(null);
+                userLikedArtists.setArtist(null);
+            }
+        }
     }
 
     @Override

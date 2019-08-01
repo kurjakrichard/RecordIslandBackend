@@ -16,6 +16,7 @@ import javax.persistence.NamedEntityGraph;
 import javax.persistence.NamedEntityGraphs;
 import javax.persistence.OneToMany;
 
+
 @Entity
 @NamedEntityGraphs({
     @NamedEntityGraph(
@@ -23,6 +24,8 @@ import javax.persistence.OneToMany;
             attributeNodes = {
                 @NamedAttributeNode(value = "similarArtists")})
 })
+
+
 public class Artist implements Serializable {
 
     @Id
@@ -34,7 +37,7 @@ public class Artist implements Serializable {
     private List<Album> albums;
     @ManyToMany()
     private Set<Artist> similarArtists = new HashSet<>();
-
+    
     public Artist() {
 
     }

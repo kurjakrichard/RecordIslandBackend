@@ -8,6 +8,7 @@ import com.progmatic.recordislandbackend.dto.SimilarArtistsWrapperDTO;
 import com.progmatic.recordislandbackend.dto.TagsWrapperDTO;
 import com.progmatic.recordislandbackend.dto.TopArtistsWrapperDTO;
 import com.progmatic.recordislandbackend.exception.LastFmException;
+import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,7 +22,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
@@ -91,7 +91,7 @@ public class LastFmServiceImpl {
 //        List<String> result = simartists.getSimilarArtists().getArtists().stream().map(a -> a.getName()).collect(Collectors.toList());
         return new HashSet<>(simartists.getSimilarArtists().getArtists());
     }
-   
+
     public List<String> listTopArtistsByGenre(String genre) {
         RestTemplate rt = new RestTemplate();
 
@@ -136,9 +136,11 @@ public class LastFmServiceImpl {
         TopArtistsWrapperDTO topartists = response.getBody();
         return topartists.getTopartists().getArtist().stream().map(a -> a.getName()).collect(Collectors.toList());
     }
-    
+
     @Transactional
-    public void saveLastFmHistory(List<String> artists) {
+    public void saveLastFmHistory(List<String> artists) throws UserNotFoundException {
+        User user = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
+        
         artists.stream().forEachOrdered((artistName) -> {
             Artist artist;
             try {
@@ -146,20 +148,15 @@ public class LastFmServiceImpl {
             } catch (NoResultException ex) {
                 artist = new Artist(artistName);
                 em.persist(artist);
-                String username = SecurityContextHolder.getContext().getAuthentication().getName();
-                User user = (User) userService.loadUserByUsername(username);
-                user.getLikedArtists().add(artist);
-                em.persist(user);
             }
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            User user = (User) userService.loadUserByUsername(username);
-            user.getLikedArtists().add(artist);
-            em.persist(user);
+            user.addArtistToLikedArtistsFromLastFm(artist);
         });
     }
-    
+
     @Transactional
     public void saveLastFmHistory(List<String> artists, String username) {
+        User user = (User) userService.loadUserByUsername(username);
+
         artists.stream().forEachOrdered((artistName) -> {
             Artist artist;
             try {
@@ -167,13 +164,8 @@ public class LastFmServiceImpl {
             } catch (NoResultException ex) {
                 artist = new Artist(artistName);
                 em.persist(artist);
-                User user = (User) userService.loadUserByUsername(username);
-                user.getLikedArtists().add(artist);
-                em.persist(user);
             }
-            User user = (User) userService.loadUserByUsername(username);
-            user.getLikedArtists().add(artist);
-            em.persist(user);
+            user.addArtistToLikedArtistsFromLastFm(artist);
         });
     }
 

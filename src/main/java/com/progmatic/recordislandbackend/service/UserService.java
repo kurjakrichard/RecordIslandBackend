@@ -16,6 +16,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.logging.Level;
 import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -212,7 +213,11 @@ public class UserService implements UserDetailsService {
         User user = getLoggedInUserForUpdate();
         if (!edit.getLastFmUsername().equals(user.getLastFmAccountName())) {
             user.getLikedArtists().removeIf(artist -> artist.isFromLastFm());
-            lastFmService.saveLastFmHistory(lastFmService.getLastFmHistory(edit.getLastFmUsername()));
+            try {
+                lastFmService.saveLastFmHistory(lastFmService.getLastFmHistory(edit.getLastFmUsername()));
+            } catch (UserNotFoundException ex) {
+                logger.error(ex.getMessage());
+            }
         }
         if (null != edit.isHasNewsLetter()) {
             user.setHasNewsLetterSubscription(edit.isHasNewsLetter());
