@@ -159,9 +159,9 @@ public class SpotifyService {
         for (SavedTrack track : tracks) {
             ArtistSimplified[] artists = track.getTrack().getArtists();
             Artist artist;
-            for (ArtistSimplified artistSname : artists) {
-                String artistName = artistSname.getName();
-                System.out.println("Artist from track: " + artistName);
+            for (ArtistSimplified artistSimplified : artists) {
+                String artistName = artistSimplified.getName();
+//                System.out.println("Artist from track: " + artistName);
                 try {
                     artist = artistRepository.findByName(artistName).get();
                 } catch (NoSuchElementException e) {
@@ -183,13 +183,13 @@ public class SpotifyService {
 
     @Transactional
     public void saveSpotifyArtistFromAlbums(SavedAlbum[] savedAlbums) {
-        System.out.println("A kedvenc albumok száma: " + savedAlbums.length);
+//        System.out.println("A kedvenc albumok száma: " + savedAlbums.length);
         for (SavedAlbum savedAlbum : savedAlbums) {
             ArtistSimplified[] artists = savedAlbum.getAlbum().getArtists();
             Artist artist;
             for (ArtistSimplified artistSname : artists) {
                 String artistName = artistSname.getName();
-                System.out.println("Artist from album: " + artistName);
+//                System.out.println("Artist from album: " + artistName);
                 try {
                     artist = artistRepository.findByName(artistName).get();
                 } catch (NoSuchElementException e) {
@@ -399,6 +399,7 @@ public class SpotifyService {
 //                .setAccessToken(spotifyAccestoken.getToken())
 //                .build();
 //    }
+    
     public void addTracksToSpotifyPlaylist(SpotifyPlaylistDto playlist, String artist, String album) throws IOException, SpotifyWebApiException, AlbumNotExistsException {
         if (spotifyAccestoken.getToken() == null) {
             throw new SpotifyTokenNotFoundExcepion("Token not found!");
@@ -419,7 +420,6 @@ public class SpotifyService {
                 .build();
 
         SnapshotResult result = addTracksToPlaylistRequest.execute();
-
     }
 
 }

@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -59,11 +58,10 @@ public class SpotifyController {
         return Arrays.asList(spotifyService.getSavedTracks());
     }
 
-    @GetMapping(path = "/api/spotify/savedArtists")
-    public HttpStatus saveSavedArtists() throws Exception {
-        spotifyService.saveSpotifyArtistFromTracks(spotifyService.getSavedTracks());
+    @GetMapping(path = "/api/getSpotifyHistory")
+    public void saveSavedArtists() throws Exception {
+//        spotifyService.saveSpotifyArtistFromTracks(spotifyService.getSavedTracks());
         spotifyService.saveSpotifyArtistFromAlbums(spotifyService.getSavedAlbums());
-        return HttpStatus.OK;
     }
 
     @GetMapping(path = "/api/spotify/callback")

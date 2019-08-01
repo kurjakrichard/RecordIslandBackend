@@ -144,6 +144,7 @@ public class RecommendationsServiceImpl {
         return resultList;
     }
 
+<<<<<<< Updated upstream
     @Transactional
     public void updateLoggedinUsersAlbumRecommendations() throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
@@ -162,6 +163,27 @@ public class RecommendationsServiceImpl {
         loggedInUser.addAlbumsToPastAlbumRecommendations(tempAlbumRecommendations);
         loggedInUser.setLastRecommendationUpdate(LocalDateTime.now());
     }
+=======
+    //same as below, only without parameter
+//    @Transactional
+//    public void updateLoggedinUsersAlbumRecommendations() throws UserNotFoundException {
+//        User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
+//        List<Album> allmusicAlbums = albumService.getAllAlbumsWithSimilarArtistsReleasedAfterLoggedInUsersLastRecommendationUpdate(LocalDateTime.now());
+//        Set<Album> tempAlbumRecommendations = new HashSet<>();
+//        for (Album album : allmusicAlbums) {
+//            Set<String> similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
+//            if (similarArtists != null && !loggedInUser.getPastAlbumRecommendations().contains(album)
+//                    && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
+//                    || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
+//                tempAlbumRecommendations.add(album);
+//            }
+//        }
+//        
+//        loggedInUser.addAlbumsToAlbumRecommendations(tempAlbumRecommendations);
+//        loggedInUser.addAlbumsToPastAlbumRecommendations(tempAlbumRecommendations);
+//        loggedInUser.setLastRecommendationUpdate(LocalDateTime.now());
+//    }
+>>>>>>> Stashed changes
 
     @Transactional
     public void updateUsersAlbumRecommendations(User user) throws UserNotFoundException {
@@ -186,11 +208,21 @@ public class RecommendationsServiceImpl {
         loggedInUser.addArtistToLikedArtists(artist);
         userService.saveUser(loggedInUser);
     }
+    
+   
+    
 
     @Transactional
     public void removeAlbumFromAlbumRecommendationsOfLoggedinUser(Album album) throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactions();
         loggedInUser.removeAlbumFromAlbumRecommendations(album);
+        userService.saveUser(loggedInUser);
+    }
+    
+    @Transactional
+    public void removeArtistFromLikedArtistsOfLoggedinUser(Artist artist) throws UserNotFoundException {
+        User loggedInUser = userService.getLoggedInUserForTransactions();
+        loggedInUser.removeArtistFromLikedArtists(artist);
         userService.saveUser(loggedInUser);
     }
 
@@ -205,11 +237,11 @@ public class RecommendationsServiceImpl {
     public Set<AlbumResponseDto> getRecommendationsOfLoggedInUser() throws UserNotFoundException, LastFmException {
         User actUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
         Set<AlbumResponseDto> resultSet = new HashSet<>();
-        updateLoggedinUsersAlbumRecommendations();
+        updateUsersAlbumRecommendations(actUser);
         for (Album albumRecommendation : actUser.getAlbumRecommendations()) {
             resultSet.add(AlbumResponseDto.from(albumRecommendation));
         }
         return resultSet;
     }
-
+    
 }

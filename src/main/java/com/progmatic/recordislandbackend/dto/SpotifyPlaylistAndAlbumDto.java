@@ -10,13 +10,11 @@ package com.progmatic.recordislandbackend.dto;
  * @author Dano
  */
 public class SpotifyPlaylistAndAlbumDto {
-    String playlistName;
     String playlistId;
     String artist;
     String album;
 
     public SpotifyPlaylistAndAlbumDto(String playlistName, String playlistId, String artist, String album) {
-        this.playlistName = playlistName;
         this.playlistId = playlistId;
         this.artist = artist;
         this.album = album;
@@ -25,9 +23,6 @@ public class SpotifyPlaylistAndAlbumDto {
     public SpotifyPlaylistAndAlbumDto() {
     }
 
-    public String getPlaylistName() {
-        return playlistName;
-    }
 
     public String getPlaylistId() {
         return playlistId;
@@ -41,9 +36,6 @@ public class SpotifyPlaylistAndAlbumDto {
         return album;
     }
 
-    public void setPlaylistName(String playlistName) {
-        this.playlistName = playlistName;
-    }
 
     public void setPlaylistId(String playlistId) {
         this.playlistId = playlistId;
