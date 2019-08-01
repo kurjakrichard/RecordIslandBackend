@@ -20,7 +20,7 @@ public class UserLikedArtists implements Serializable {
     @MapsId("userId")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @MapsId("likedArtistsId")
     private Artist artist;
 
