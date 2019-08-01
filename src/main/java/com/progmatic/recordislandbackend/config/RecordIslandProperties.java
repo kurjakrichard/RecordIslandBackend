@@ -14,6 +14,7 @@ public class RecordIslandProperties {
     private String spotifyClientSecret = "";
     private String frontend = "";
     private String ownEmail = "";
+    private String spotifyRedirectUrl = "";
 
     public RecordIslandProperties() {
     }
@@ -73,4 +74,13 @@ public class RecordIslandProperties {
     public void setOwnEmail(String ownEmail) {
         this.ownEmail = ownEmail;
     }
+
+    public String getSpotifyRedirectUrl() {
+        return spotifyRedirectUrl;
+    }
+
+    public void setSpotifyRedirectUrl(String spotifyRedirectUrl) {
+        this.spotifyRedirectUrl = spotifyRedirectUrl;
+    }
+    
 }
