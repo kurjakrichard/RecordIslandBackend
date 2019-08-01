@@ -23,6 +23,10 @@ public interface UserRepository extends JpaRepository<User, Integer>{
     
     Optional<User> findByUsername(String name);
     
+    @EntityGraph(attributePaths = "likedArtists")
+    @Query("SELECT u FROM User u WHERE u.username = :username")
+    Optional<User> findByUsernameWithLikedArtists(String username);
+    
     @EntityGraph(value = "userWithAlbumRecommendationsAndLikedArtistsAndDislikedArtistsPastRecommend")
     @Query("SELECT u FROM User u WHERE u.hasNewsLetterSubscription = TRUE")
     List<User> findAllUserWithNewsLetterSubscription();

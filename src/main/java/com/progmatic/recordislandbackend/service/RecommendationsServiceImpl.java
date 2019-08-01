@@ -68,8 +68,8 @@ public class RecommendationsServiceImpl {
                 System.out.println(ex.getMessage() + album.getArtist().getName());
                 continue;
             }
-            if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
-                    || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.stream().anyMatch(artist -> artist.getName().equals(a))))) {
+            if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getArtist().getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
+                    || loggedInUser.getLikedArtists().stream().map(a -> a.getArtist().getName()).anyMatch(a -> similarArtists.stream().anyMatch(artist -> artist.getName().equals(a))))) {
                 resultSet.add(album);
             }
         }
@@ -135,8 +135,8 @@ public class RecommendationsServiceImpl {
 //                System.out.println(ex.getMessage() + album.getArtist().getName());
 //                continue;
 //            }
-            if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
-                    || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
+            if (similarArtists != null && (loggedInUser.getLikedArtists().stream().map(a -> a.getArtist().getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
+                    || loggedInUser.getLikedArtists().stream().map(a -> a.getArtist().getName()).anyMatch(a -> similarArtists.contains(a)))) {
                 resultList.add(AlbumResponseDto.from(album));
 //                addAlbumToAlbumRecommendationsOfLoggedInUser(album);
             }
@@ -152,8 +152,8 @@ public class RecommendationsServiceImpl {
         for (Album album : allmusicAlbums) {
             Set<String> similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
             if (similarArtists != null && !loggedInUser.getPastAlbumRecommendations().contains(album)
-                    && (loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
-                    || loggedInUser.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
+                    && (loggedInUser.getLikedArtists().stream().map(a -> a.getArtist().getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
+                    || loggedInUser.getLikedArtists().stream().map(a -> a.getArtist().getName()).anyMatch(a -> similarArtists.contains(a)))) {
                 tempAlbumRecommendations.add(album);
             }
         }
@@ -170,8 +170,8 @@ public class RecommendationsServiceImpl {
         for (Album album : allmusicAlbums) {
             Set<String> similarArtists = album.getArtist().getSimilarArtists().stream().map(Artist::getName).collect(Collectors.toSet());
             if (similarArtists != null && !user.getPastAlbumRecommendations().contains(album)
-                    && (user.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
-                    || user.getLikedArtists().stream().map(a -> a.getName()).anyMatch(a -> similarArtists.contains(a)))) {
+                    && (user.getLikedArtists().stream().map(a -> a.getArtist().getName()).anyMatch(a -> a.equals(album.getArtist().getName()))
+                    || user.getLikedArtists().stream().map(a -> a.getArtist().getName()).anyMatch(a -> similarArtists.contains(a)))) {
                 tempAlbumRecommendations.add(album);
             }
         }

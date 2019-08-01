@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.progmatic.recordislandbackend.service;
 
 import com.progmatic.recordislandbackend.config.RecordIslandProperties;
@@ -43,17 +38,13 @@ import com.wrapper.spotify.requests.data.playlists.GetListOfCurrentUsersPlaylist
 import com.wrapper.spotify.requests.data.search.simplified.SearchAlbumsRequest;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-/**
- *
- * @author balza
- */
+
 @Service
 public class SpotifyService {
 
@@ -64,8 +55,6 @@ public class SpotifyService {
     private ArtistRepository artistRepository;
     private UserRepository userRepository;
 
-//    @PersistenceContext
-//    private EntityManager em;
     @Autowired
     public SpotifyService(RecordIslandProperties properties, SpotifyAccessToken spotifyAccestoken, UserService userService,
             ArtistRepository artistRepository, UserRepository userRepository) {
@@ -180,13 +169,13 @@ public class SpotifyService {
                     artistRepository.save(artist);
                     String username = SecurityContextHolder.getContext().getAuthentication().getName();
                     User user = (User) userService.loadUserByUsername(username);
-                    user.getLikedArtists().add(artist);
+                    user.addArtistToLikedArtists(artist);
                     userRepository.save(user);
                     continue;
                 }
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
                 User user = (User) userService.loadUserByUsername(username);
-                user.getLikedArtists().add(artist);
+                user.addArtistToLikedArtists(artist);
                 userRepository.save(user);
             }
         }
@@ -208,12 +197,12 @@ public class SpotifyService {
                     artistRepository.save(artist);
                     String username = SecurityContextHolder.getContext().getAuthentication().getName();
                     User user = (User) userService.loadUserByUsername(username);
-                    user.getLikedArtists().add(artist);
+                    user.addArtistToLikedArtists(artist);
                     userRepository.save(user);
                 }
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
                 User user = (User) userService.loadUserByUsername(username);
-                user.getLikedArtists().add(artist);
+                user.addArtistToLikedArtists(artist);
                 userRepository.save(user);
             }
         }

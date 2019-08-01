@@ -7,6 +7,7 @@ import com.progmatic.recordislandbackend.domain.Authority;
 import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.domain.VerificationToken;
 import com.progmatic.recordislandbackend.dto.RegistrationDto;
+import com.progmatic.recordislandbackend.dto.UserProfileEditDTO;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import com.progmatic.recordislandbackend.exception.VerificationTokenNotFoundException;
@@ -15,7 +16,10 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.logging.Level;
 import javax.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,7 +29,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 
 @Service
 public class UserService implements UserDetailsService {
@@ -39,6 +42,8 @@ public class UserService implements UserDetailsService {
     public static final String TOKEN_INVALID = "invalidToken";
     public static final String TOKEN_EXPIRED = "expired";
     public static final String TOKEN_VALID = "valid";
+
+    private final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     public UserService(AuthorityRepository authorityRepository,
@@ -71,7 +76,7 @@ public class UserService implements UserDetailsService {
             authority = getAuthorityByName("ROLE_USER");
         }
         User user = new User(registration.getUsername(), passwordEncoder.encode(registration.getPassword()),
-                registration.getEmail(), registration.getLastFmUsername(), registration.getSpotifyUsername(), registration.hasNewsLetter());
+                registration.getEmail(), registration.getLastFmUsername(), registration.hasNewsLetter());
         user.addAuthority(authority);
         userRepository.save(user);
         return user;
@@ -91,12 +96,12 @@ public class UserService implements UserDetailsService {
         user.setLastLoginDate(LocalDateTime.now());
         userRepository.save(user);
     }
-    
+
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteUser(String username) throws UserNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("User not found! [ " + username + " ]"));
+    public void deleteUser(int id) throws UserNotFoundException {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found! [ ID: " + id + " ]"));
         userRepository.delete(user);
     }
 
@@ -110,24 +115,40 @@ public class UserService implements UserDetailsService {
         return user;
     }
 
-    public User getLoggedInUserForTransactions() throws UserNotFoundException {
+    public User getLoggedInUserForTransactions() {
         User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User dbUser = findUserByName(loggedInUser.getUsername());
+        User dbUser = null;
+        try {
+            dbUser = findUserByName(loggedInUser.getUsername());
+        } catch (UserNotFoundException ex) {
+            logger.error(ex.getMessage());
+        }
         return dbUser;
     }
-    
+
+    public User getLoggedInUserForUpdate() {
+        User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User dbUser = null;
+        try {
+            dbUser = userRepository.findByUsernameWithLikedArtists(loggedInUser.getUsername()).get();
+        } catch (NoSuchElementException ex) {
+            logger.error(ex.getMessage() + "User cannot be found in the database!");
+        }
+        return dbUser;
+    }
+
     public User getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists() throws UserNotFoundException {
         User loggedInUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User dbUser = userRepository.getUserWithRecommendationsAndLikedAndDislikedArtistsByUsername(loggedInUser.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("User not found! [ " + loggedInUser.getUsername() + " ]"));
         return dbUser;
     }
-    
+
     @Transactional
-    public User saveUser(User user){
+    public User saveUser(User user) {
         return userRepository.save(user);
     }
-    
+
     @Transactional
     public void addUsersLastFmHistory(RegistrationDto registration) {
         if (null != registration.getLastFmUsername() && !registration.getLastFmUsername().isEmpty()) {
@@ -161,7 +182,7 @@ public class UserService implements UserDetailsService {
     }
 
     public String validateVerificationToken(String token) {
-        final VerificationToken verificationToken; 
+        final VerificationToken verificationToken;
         try {
             verificationToken = verificationTokenRepository.findByToken(token).get();
         } catch (NoSuchElementException ex) {
@@ -182,8 +203,24 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
         return TOKEN_VALID;
     }
-    
-    public List<User> getAllUserWithNewsLetterSubscription(){
+
+    public List<User> getAllUserWithNewsLetterSubscription() {
         return userRepository.findAllUserWithNewsLetterSubscription();
+    }
+
+    @Transactional
+    public void updateUserProfile(UserProfileEditDTO edit) {
+        User user = getLoggedInUserForUpdate();
+        if (!edit.getLastFmUsername().equals(user.getLastFmAccountName())) {
+            user.getLikedArtists().removeIf(artist -> artist.isFromLastFm());
+            try {
+                lastFmService.saveLastFmHistory(lastFmService.getLastFmHistory(edit.getLastFmUsername()));
+            } catch (UserNotFoundException ex) {
+                logger.error(ex.getMessage());
+            }
+        }
+        if (null != edit.isHasNewsLetter()) {
+            user.setHasNewsLetterSubscription(edit.isHasNewsLetter());
+        }
     }
 }

@@ -1,12 +1,12 @@
 package com.progmatic.recordislandbackend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import com.progmatic.recordislandbackend.service.UserService;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,8 +45,11 @@ public class MySavedRequestAwareAuthenticationSuccessHandler
         Map<String, Object> userNameResponse = new HashMap<>();
         
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        
-        userNameResponse.put("username", authentication.getName());
+        User user = (User) userService.loadUserByUsername(authentication.getName());
+        userNameResponse.put("username", user.getUsername());
+        userNameResponse.put("email", user.getEmail());
+        userNameResponse.put("lastFmUsername", user.getLastFmAccountName());
+        userNameResponse.put("newsLetter", user.isHasNewsLetterSubscription());
        
         try {
             userService.updateLastLoginDate(authentication.getName());
