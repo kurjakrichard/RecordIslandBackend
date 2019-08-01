@@ -144,7 +144,6 @@ public class RecommendationsServiceImpl {
         return resultList;
     }
 
-<<<<<<< Updated upstream
     @Transactional
     public void updateLoggedinUsersAlbumRecommendations() throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
@@ -163,7 +162,6 @@ public class RecommendationsServiceImpl {
         loggedInUser.addAlbumsToPastAlbumRecommendations(tempAlbumRecommendations);
         loggedInUser.setLastRecommendationUpdate(LocalDateTime.now());
     }
-=======
     //same as below, only without parameter
 //    @Transactional
 //    public void updateLoggedinUsersAlbumRecommendations() throws UserNotFoundException {
@@ -183,7 +181,6 @@ public class RecommendationsServiceImpl {
 //        loggedInUser.addAlbumsToPastAlbumRecommendations(tempAlbumRecommendations);
 //        loggedInUser.setLastRecommendationUpdate(LocalDateTime.now());
 //    }
->>>>>>> Stashed changes
 
     @Transactional
     public void updateUsersAlbumRecommendations(User user) throws UserNotFoundException {

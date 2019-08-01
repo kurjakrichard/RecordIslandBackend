@@ -38,21 +38,17 @@ import org.springframework.security.core.userdetails.UserDetails;
                 ,
                     @NamedAttributeNode(value = "likedArtists")
                 ,
-<<<<<<< Updated upstream
                     @NamedAttributeNode(value = "dislikedArtists")
                 ,
-                    @NamedAttributeNode(value = "pastAlbumRecommendations", subgraph = "album.artist")
+                    @NamedAttributeNode(value = "pastAlbumRecommendations", subgraph = "album.artist"),
 
-=======
-                    @NamedAttributeNode(value = "dislikedArtists"),
+                    @NamedAttributeNode(value = "dislikedArtists")
 //                    @NamedAttributeNode(value = "pastAlbumRecommendations"/*, subgraph = "album.artist"*/)
                 
->>>>>>> Stashed changes
             },
             subgraphs = @NamedSubgraph(name = "album.artist",
                     attributeNodes = @NamedAttributeNode(value = "artist"))
-    )
-    ,
+    ),
     @NamedEntityGraph(
             name = "userWithAlbumRecommendationsAndLikedArtistsAndDislikedArtistsPastRecommend",
             attributeNodes = {
@@ -270,9 +266,9 @@ public class User implements UserDetails {
         this.albumRecommendations.removeIf(alb -> alb.getTitle().equals(album.getTitle()));
     }
     
-    public void removeArtistFromLikedArtists(Artist artist) {
-        this.likedArtists.removeIf(art -> art.equals(artist));
-    }
+//    public void removeArtistFromLikedArtists(Artist artist) {
+//        this.likedArtists.removeIf(art -> art.equals(artist));
+//    }
 
     public Album getAlbumFromAlbumRecommendations(Album album) {
         return this.albumRecommendations.stream().filter(alb -> alb.getTitle().equals(album.getTitle())).findFirst().get();
