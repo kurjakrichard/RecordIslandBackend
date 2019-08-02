@@ -89,7 +89,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping(path = "/api/changePassword")
+    @PostMapping(path = "/api/changePassword")
     public ResponseEntity changePassword(@RequestBody Map<String,String> changePassword) {
         String result = userService.validatePasswordResetToken(Integer.parseInt(changePassword.get("id")), changePassword.get("token"));
         if (result != null) {

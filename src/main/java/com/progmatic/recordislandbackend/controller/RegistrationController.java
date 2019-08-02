@@ -10,6 +10,7 @@ import com.progmatic.recordislandbackend.service.AllMusicWebScrapeService;
 import com.progmatic.recordislandbackend.service.DiscogsService;
 import com.progmatic.recordislandbackend.service.LastFmServiceImpl;
 import com.progmatic.recordislandbackend.service.RecommendationsServiceImpl;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -51,9 +52,11 @@ public class RegistrationController {
 
     @PostMapping(path = "/api/lastfmtopartists")
     public void updateLastFmProfile(@RequestBody List<String> genres) throws UserNotFoundException {
+        Set<String> setArtists = new HashSet<>();
         for (String genre : genres) {
-        recommendationsService.addTopArtistsFromLastFmToLoggedInUser(lastFmServiceImpl.listTopArtistsByGenre(genre));
+        setArtists.addAll(lastFmServiceImpl.listTopArtistsByGenre(genre));
         }
+        recommendationsService.addTopArtistsFromLastFmToLoggedInUser(setArtists);
     }
 
     @GetMapping(path = "/api/discogs")

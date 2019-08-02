@@ -241,7 +241,7 @@ public class RecommendationsServiceImpl {
     }
     
     @Transactional
-    public void addTopArtistsFromLastFmToLoggedInUser(List<String> topArtists) throws UserNotFoundException {
+    public void addTopArtistsFromLastFmToLoggedInUser(Set<String> topArtists) throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
         for (String topArtist : topArtists) {
             if (artistRepository.existsByName(topArtist)) {
