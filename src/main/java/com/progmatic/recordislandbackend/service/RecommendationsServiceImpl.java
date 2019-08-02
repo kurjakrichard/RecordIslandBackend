@@ -1,5 +1,6 @@
 package com.progmatic.recordislandbackend.service;
 
+import com.progmatic.recordislandbackend.dao.ArtistRepository;
 import com.progmatic.recordislandbackend.domain.Album;
 import com.progmatic.recordislandbackend.domain.Artist;
 import com.progmatic.recordislandbackend.domain.User;
@@ -40,18 +41,20 @@ public class RecommendationsServiceImpl {
     private final UserService userService;
     private final AlbumService albumService;
     private final ArtistService artistService;
+    private final ArtistRepository artistRepository;
     private Logger logger = LoggerFactory.getLogger(RecommendationsServiceImpl.class);
 
     @Autowired
     public RecommendationsServiceImpl(LastFmServiceImpl lastFmService, DiscogsService discogsService,
             AllMusicWebScrapeService allmusicWebscrapeService, UserService userService, AlbumService albumService,
-            ArtistService artistService) {
+            ArtistService artistService, ArtistRepository artistRepository) {
         this.lastFmService = lastFmService;
         this.discogsService = discogsService;
         this.allmusicWebscrapeService = allmusicWebscrapeService;
         this.userService = userService;
         this.albumService = albumService;
         this.artistService = artistService;
+        this.artistRepository = artistRepository;
     }
 
     @Deprecated
@@ -203,7 +206,6 @@ public class RecommendationsServiceImpl {
     public void addArtistToLikedArtistsOfLoggedInUser(Artist artist) throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactions();
         loggedInUser.addArtistToLikedArtists(artist);
-        userService.saveUser(loggedInUser);
     }
     
    
@@ -213,32 +215,38 @@ public class RecommendationsServiceImpl {
     public void removeAlbumFromAlbumRecommendationsOfLoggedinUser(Album album) throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactions();
         loggedInUser.removeAlbumFromAlbumRecommendations(album);
-        userService.saveUser(loggedInUser);
     }
     
     @Transactional
     public void removeArtistFromLikedArtistsOfLoggedinUser(Artist artist) throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactions();
         loggedInUser.removeArtistFromLikedArtists(artist);
-        userService.saveUser(loggedInUser);
     }
 
     @Transactional
     public void addArtistToUsersDislikedArtists(Artist artist) throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactions();
         loggedInUser.addArtistToDislikedArtists(artist);
-        userService.saveUser(loggedInUser);
     }
 
     @Transactional
     public Set<AlbumResponseDto> getRecommendationsOfLoggedInUser() throws UserNotFoundException, LastFmException {
-        User actUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
+        User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
         Set<AlbumResponseDto> resultSet = new HashSet<>();
-        updateUsersAlbumRecommendations(actUser);
-        for (Album albumRecommendation : actUser.getAlbumRecommendations()) {
+        updateUsersAlbumRecommendations(loggedInUser);
+        for (Album albumRecommendation : loggedInUser.getAlbumRecommendations()) {
             resultSet.add(AlbumResponseDto.from(albumRecommendation));
         }
         return resultSet;
     }
     
+    @Transactional
+    public void addTopArtistsFromLastFmToLoggedInUser(List<String> topArtists) throws UserNotFoundException {
+        User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
+        for (String topArtist : topArtists) {
+            if (artistRepository.existsByName(topArtist)) {
+            loggedInUser.addArtistToLikedArtists(artistRepository.findByName(topArtist).get());
+            } 
+        }
+    }
 }

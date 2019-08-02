@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,9 +49,11 @@ public class RegistrationController {
         return lastFmServiceImpl.listSimilarArtists(name);
     }
 
-    @GetMapping(path = "/api/topartists")
-    public List<String> listTopArtistsByGenre(@RequestParam String genre) {
-        return lastFmServiceImpl.listTopArtistsByGenre(genre);
+    @PostMapping(path = "/api/lastfmtopartists")
+    public void updateLastFmProfile(@RequestBody List<String> genres) throws UserNotFoundException {
+        for (String genre : genres) {
+        recommendationsService.addTopArtistsFromLastFmToLoggedInUser(lastFmServiceImpl.listTopArtistsByGenre(genre));
+        }
     }
 
     @GetMapping(path = "/api/discogs")

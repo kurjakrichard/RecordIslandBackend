@@ -73,4 +73,5 @@ public class RecommendationsController {
         return recommendationsService.getRecommendationsOfLoggedInUser();
     }
     
+    
 }
