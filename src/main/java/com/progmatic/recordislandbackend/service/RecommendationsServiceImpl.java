@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -160,7 +161,7 @@ public class RecommendationsServiceImpl {
                 tempAlbumRecommendations.add(album);
             }
         }
-        
+
         loggedInUser.addAlbumsToAlbumRecommendations(tempAlbumRecommendations);
         loggedInUser.addAlbumsToPastAlbumRecommendations(tempAlbumRecommendations);
         loggedInUser.setLastRecommendationUpdate(LocalDateTime.now());
@@ -207,16 +208,13 @@ public class RecommendationsServiceImpl {
         User loggedInUser = userService.getLoggedInUserForTransactions();
         loggedInUser.addArtistToLikedArtists(artist);
     }
-    
-   
-    
 
     @Transactional
     public void removeAlbumFromAlbumRecommendationsOfLoggedinUser(Album album) throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactions();
         loggedInUser.removeAlbumFromAlbumRecommendations(album);
     }
-    
+
     @Transactional
     public void removeArtistFromLikedArtistsOfLoggedinUser(Artist artist) throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactions();
@@ -239,14 +237,17 @@ public class RecommendationsServiceImpl {
         }
         return resultSet;
     }
-    
+
     @Transactional
     public void addTopArtistsFromLastFmToLoggedInUser(Set<String> topArtists) throws UserNotFoundException {
         User loggedInUser = userService.getLoggedInUserForTransactionsWithRecommendationsAndLikedArtistsAndDislikedArtists();
+        topArtists.removeIf(topArtist -> loggedInUser.getLikedArtists().stream().map(a -> a.getArtist().getName()).anyMatch(a -> a.equalsIgnoreCase(topArtist)));
+        
         for (String topArtist : topArtists) {
-            if (artistRepository.existsByName(topArtist)) {
-            loggedInUser.addArtistToLikedArtists(artistRepository.findByName(topArtist).get());
-            } 
+            Optional<Artist> artist = artistRepository.findByName(topArtist);
+            if (artist.isPresent()) {
+                loggedInUser.addArtistToLikedArtists(artist.get());
+            }
         }
     }
 }

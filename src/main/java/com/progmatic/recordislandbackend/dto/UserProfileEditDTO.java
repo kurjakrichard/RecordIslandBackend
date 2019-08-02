@@ -1,12 +1,10 @@
 package com.progmatic.recordislandbackend.dto;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 
 public class UserProfileEditDTO {
     
     @NotBlank
-    @NotEmpty
     private String lastFmUsername;
     private Boolean hasNewsLetter;
 

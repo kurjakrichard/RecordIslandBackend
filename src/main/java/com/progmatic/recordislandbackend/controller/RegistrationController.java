@@ -54,7 +54,7 @@ public class RegistrationController {
     public void updateLastFmProfile(@RequestBody List<String> genres) throws UserNotFoundException {
         Set<String> setArtists = new HashSet<>();
         for (String genre : genres) {
-        setArtists.addAll(lastFmServiceImpl.listTopArtistsByGenre(genre));
+            setArtists.addAll(lastFmServiceImpl.listTopArtistsByGenre(genre));
         }
         recommendationsService.addTopArtistsFromLastFmToLoggedInUser(setArtists);
     }
@@ -67,12 +67,12 @@ public class RegistrationController {
     private GenreResponseDTO convertToDto(String name) {
         return new GenreResponseDTO(name);
     }
-    
+
     @GetMapping(path = "/api/allmusic")
     public Set<Album> getDiscogsReleases() {
         return allmusicWebscrapeService.getAllMusicReleases();
     }
-    
+
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(value = {"/api/runWeeklyWebScrape"})
     public void getUserRecommendationsFromAllmusic() throws LastFmException, UserNotFoundException, ArtistNotExistsException {
