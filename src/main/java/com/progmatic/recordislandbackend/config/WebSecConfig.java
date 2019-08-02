@@ -47,7 +47,7 @@ public class WebSecConfig extends WebSecurityConfigurerAdapter {
                 .failureHandler(customAuthenticationFailureHandler)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/recordisland", "/register", "/login", "/verify").permitAll()
+                .antMatchers("/recordisland", "/register", "/login", "/verify", "/api/resetPassword").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .logout()

@@ -10,6 +10,7 @@ import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import com.progmatic.recordislandbackend.service.IEmailService;
 import com.progmatic.recordislandbackend.service.UserService;
+import java.util.Map;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,7 @@ public class UserController {
     private final ApplicationEventPublisher eventPublisher;
     private final IEmailService emailService;
 
-    private Logger logger = LoggerFactory.getLogger(UserController.class);
+    private final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
     public UserController(UserService userService, ApplicationEventPublisher applicationEventPublisher, IEmailService emailservice) {
@@ -47,6 +48,7 @@ public class UserController {
         userService.addUsersLastFmHistory(registration);
         String appUrl = request.getContextPath();
         eventPublisher.publishEvent(new OnRegistrationCompleteEvent(registered, request.getLocale(), appUrl));
+        logger.info(registration.getUsername() + " registered!");
         return ResponseEntity.ok().build();
     }
 
@@ -80,9 +82,8 @@ public class UserController {
     }
 
     @PostMapping(path = "/api/resetPassword")
-    public ResponseEntity resetPassword(@RequestParam("username") String username) throws UserNotFoundException {
-        User user;
-        user = userService.findUserByName(username);
+    public ResponseEntity resetPassword(@RequestBody  Map<String,String> username) throws UserNotFoundException {
+        User user = userService.findUserByName(username.get("username"));
         PasswordResetToken token = userService.createPasswordResetTokenForUser(user);
         emailService.sendSimpleMessage(emailService.constructResetTokenEmail(token.getToken(), user));
         return ResponseEntity.ok().build();
