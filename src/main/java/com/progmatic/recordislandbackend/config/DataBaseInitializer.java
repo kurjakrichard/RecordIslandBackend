@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -58,7 +57,7 @@ public class DataBaseInitializer {
     public void onAppStartup(ContextRefreshedEvent ev) throws AlreadyExistsException, LastFmException, ArtistNotExistsException {
         DataBaseInitializer dbInitializer = ev.getApplicationContext().getBean(DataBaseInitializer.class);
         dbInitializer.init();
-//        dbInitializer.getAllmusicRecommendations();
+        dbInitializer.getAllmusicRecommendations();
     }
 
 //    @Scheduled(cron = "0 32 9 * * ? 2019")
