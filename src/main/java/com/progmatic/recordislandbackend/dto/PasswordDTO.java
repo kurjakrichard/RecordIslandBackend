@@ -13,6 +13,7 @@ public class PasswordDTO {
     @NotEmpty
     @Size(min = 8, message = "Password must be at least {min} characters long!")
     private String password;
+    private String token;
 
     public PasswordDTO() {
     }
@@ -37,4 +38,13 @@ public class PasswordDTO {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+    
 }

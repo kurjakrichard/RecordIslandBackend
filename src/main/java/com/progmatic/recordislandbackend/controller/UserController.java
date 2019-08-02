@@ -90,21 +90,13 @@ public class UserController {
     }
 
     @PostMapping(path = "/api/changePassword")
-    public ResponseEntity changePassword(@RequestBody Map<String,String> changePassword) throws UserNotFoundException {
-        String result = userService.validatePasswordResetToken(Integer.parseInt(changePassword.get("id")), changePassword.get("token"));
+    public ResponseEntity changePassword(@RequestBody PasswordDTO changePassword) throws UserNotFoundException {
+        String result = userService.validatePasswordResetToken(changePassword.getUserID(), changePassword.getToken());
         if (result != null) {
-            User user = userService.findUserById(Integer.parseInt(changePassword.get("id")));
-            userService.changeUserPassword(user, changePassword.get("password"));
-            return ResponseEntity.ok(changePassword.get("id"));
+            User user = userService.findUserById(changePassword.getUserID());
+            userService.changeUserPassword(user, changePassword.getPassword());
+            return ResponseEntity.ok().build();
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
-
-//    @PostMapping(path = "/api/savePassword")
-//    public ResponseEntity savePassword(@Valid PasswordDTO passwordDto) throws UserNotFoundException {
-//        User user = userService.findUserById(passwordDto.getUserID());
-//
-//        userService.changeUserPassword(user, passwordDto.getPassword());
-//        return ResponseEntity.ok().build();
-//    }
 }
