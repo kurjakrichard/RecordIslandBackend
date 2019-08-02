@@ -5,13 +5,13 @@ public class UserProfileResponseDTO {
     private String username;
     private String email;
     private boolean newsLetter;
-    private String lasFmUsername;
+    private String lastFmUsername;
 
-    public UserProfileResponseDTO(String username, String email, boolean newsLetter, String lasFmUsername) {
+    public UserProfileResponseDTO(String username, String email, boolean newsLetter, String lastFmUsername) {
         this.username = username;
         this.email = email;
         this.newsLetter = newsLetter;
-        this.lasFmUsername = lasFmUsername;
+        this.lastFmUsername = lastFmUsername;
     }
 
     public String getUsername() {
@@ -26,8 +26,8 @@ public class UserProfileResponseDTO {
         return newsLetter;
     }
 
-    public String getLasFmUsername() {
-        return lasFmUsername;
+    public String getLastFmUsername() {
+        return lastFmUsername;
     }
 
     public void setUsername(String username) {
@@ -42,7 +42,7 @@ public class UserProfileResponseDTO {
         this.newsLetter = newsLetter;
     }
 
-    public void setLasFmUsername(String lasFmUsername) {
-        this.lasFmUsername = lasFmUsername;
+    public void setLastFmUsername(String lastFmUsername) {
+        this.lastFmUsername = lastFmUsername;
     }
 }

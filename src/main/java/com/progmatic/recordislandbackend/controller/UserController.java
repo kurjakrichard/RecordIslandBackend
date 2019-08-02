@@ -76,7 +76,7 @@ public class UserController {
     }
 
     @PostMapping(path = "/editProfile")
-    public ResponseEntity editUserProfile(@Valid @RequestBody UserProfileEditDTO edit) {
+    public ResponseEntity editUserProfile(@RequestBody UserProfileEditDTO edit) {
         User user = userService.updateUserProfile(edit);
         return ResponseEntity.ok(new UserProfileResponseDTO(user.getUsername(), user.getEmail(),
                 user.isHasNewsLetterSubscription(), user.getLastFmAccountName()));
