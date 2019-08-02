@@ -34,6 +34,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -225,7 +226,7 @@ public class UserService implements UserDetailsService {
     @Transactional
     public User updateUserProfile(UserProfileEditDTO edit) {
         User user = getLoggedInUserForUpdate();
-        if (!edit.getLastFmUsername().equals(user.getLastFmAccountName())) {
+        if (StringUtils.hasText(edit.getLastFmUsername()) && !edit.getLastFmUsername().equals(user.getLastFmAccountName())) {
             user.getLikedArtists().removeIf(artist -> artist.isFromLastFm());
             try {
                 lastFmService.saveLastFmHistory(lastFmService.getLastFmHistory(edit.getLastFmUsername()));
