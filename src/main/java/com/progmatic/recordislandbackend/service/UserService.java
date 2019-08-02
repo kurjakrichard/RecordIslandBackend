@@ -1,9 +1,11 @@
 package com.progmatic.recordislandbackend.service;
 
 import com.progmatic.recordislandbackend.dao.AuthorityRepository;
+import com.progmatic.recordislandbackend.dao.PasswordTokenRepository;
 import com.progmatic.recordislandbackend.dao.UserRepository;
 import com.progmatic.recordislandbackend.dao.VerificationTokenRepository;
 import com.progmatic.recordislandbackend.domain.Authority;
+import com.progmatic.recordislandbackend.domain.PasswordResetToken;
 import com.progmatic.recordislandbackend.domain.User;
 import com.progmatic.recordislandbackend.domain.VerificationToken;
 import com.progmatic.recordislandbackend.dto.RegistrationDto;
@@ -12,17 +14,20 @@ import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.UserNotFoundException;
 import com.progmatic.recordislandbackend.exception.VerificationTokenNotFoundException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
-import java.util.logging.Level;
 import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -38,6 +43,7 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final LastFmServiceImpl lastFmService;
     private final VerificationTokenRepository verificationTokenRepository;
+    private final PasswordTokenRepository passwordTokenRepository;
 
     public static final String TOKEN_INVALID = "invalidToken";
     public static final String TOKEN_EXPIRED = "expired";
@@ -50,12 +56,14 @@ public class UserService implements UserDetailsService {
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             @Lazy LastFmServiceImpl lastFmService,
-            VerificationTokenRepository verificationTokenRepository) {
+            VerificationTokenRepository verificationTokenRepository,
+            PasswordTokenRepository passwordTokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.lastFmService = lastFmService;
         this.verificationTokenRepository = verificationTokenRepository;
         this.authorityRepository = authorityRepository;
+        this.passwordTokenRepository = passwordTokenRepository;
     }
 
     @Override
@@ -112,6 +120,12 @@ public class UserService implements UserDetailsService {
 
     public User findUserByName(String username) throws UserNotFoundException {
         User user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("User not found! [ " + username + " ]"));
+        return user;
+    }
+
+    public User findUserByEmail(String email) throws UserNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email( " + email + " )!"));
         return user;
     }
 
@@ -222,5 +236,41 @@ public class UserService implements UserDetailsService {
         if (null != edit.isHasNewsLetter()) {
             user.setHasNewsLetterSubscription(edit.isHasNewsLetter());
         }
+    }
+
+    public PasswordResetToken createPasswordResetTokenForUser(User user) {
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken myToken = new PasswordResetToken(token, user);
+        passwordTokenRepository.save(myToken);
+        return myToken;
+    }
+
+    public String validatePasswordResetToken(int id, String token) {
+        PasswordResetToken passToken = passwordTokenRepository.findByToken(token);
+        if ((passToken == null) || (passToken.getUser()
+                .getId() != id)) {
+            return "invalidToken";
+        }
+
+        Calendar cal = Calendar.getInstance();
+        if ((passToken.getExpiryDate()
+                .getTime() - cal.getTime()
+                        .getTime()) <= 0) {
+            passwordTokenRepository.delete(passToken);
+            return "expired";
+        }
+
+        User user = passToken.getUser();
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                user, null, Arrays.asList(
+                        new SimpleGrantedAuthority("CHANGE_PASSWORD_PRIVILEGE")));
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        passwordTokenRepository.delete(passToken);
+        return null;
+    }
+
+    public void changeUserPassword(User user, String password) {
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
     }
 }

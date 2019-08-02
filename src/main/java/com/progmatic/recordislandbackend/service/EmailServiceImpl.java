@@ -136,4 +136,15 @@ public class EmailServiceImpl implements IEmailService {
             }
         }
     }
+
+    public SimpleMailMessage constructResetTokenEmail(String token, User user) {
+        String url = recordIslandProperties.getFrontend() + "/api/changePassword?id="
+                + user.getId() + "&token=" + token;
+        SimpleMailMessage email = new SimpleMailMessage();
+        email.setSubject("Password Reset");
+        email.setText("Link for password reset:" + url);
+        email.setTo(user.getEmail());
+        email.setFrom(recordIslandProperties.getOwnEmail());
+        return email;
+    }
 }

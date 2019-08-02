@@ -19,4 +19,6 @@ public interface IEmailService {
     void sendSimpleMessage(SimpleMailMessage email);
     
     void sendNewsLetters();
+    
+    SimpleMailMessage constructResetTokenEmail(String token, User user);
 }

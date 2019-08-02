@@ -1,13 +1,18 @@
 package com.progmatic.recordislandbackend.controller;
 
+import com.progmatic.recordislandbackend.domain.PasswordResetToken;
 import com.progmatic.recordislandbackend.domain.User;
+import com.progmatic.recordislandbackend.dto.PasswordDTO;
 import com.progmatic.recordislandbackend.dto.RegistrationDto;
 import com.progmatic.recordislandbackend.dto.UserProfileEditDTO;
 import com.progmatic.recordislandbackend.dto.UserProfileResponseDTO;
 import com.progmatic.recordislandbackend.exception.AlreadyExistsException;
 import com.progmatic.recordislandbackend.exception.UserNotFoundException;
+import com.progmatic.recordislandbackend.service.IEmailService;
 import com.progmatic.recordislandbackend.service.UserService;
 import javax.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -23,13 +28,17 @@ import org.springframework.web.context.request.WebRequest;
 @RestController
 public class UserController {
 
-    private UserService userService;
-    private ApplicationEventPublisher eventPublisher;
+    private final UserService userService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final IEmailService emailService;
+
+    private Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
-    public UserController(UserService userService, ApplicationEventPublisher applicationEventPublisher) {
+    public UserController(UserService userService, ApplicationEventPublisher applicationEventPublisher, IEmailService emailservice) {
         this.userService = userService;
         this.eventPublisher = applicationEventPublisher;
+        this.emailService = emailservice;
     }
 
     @PostMapping(path = "/register")
@@ -50,22 +59,49 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Verification token is " + result + "!");
         }
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "/deleteUser")
     public ResponseEntity deleteUser(@Valid @RequestParam int id) throws UserNotFoundException {
         userService.deleteUser(id);
         return ResponseEntity.ok().build();
     }
-    
+
     @GetMapping(path = "/profile")
-    public UserProfileResponseDTO getUserProfile(){
+    public UserProfileResponseDTO getUserProfile() {
         User user = userService.getLoggedInUserForTransactions();
         return new UserProfileResponseDTO(user.getUsername(), user.getEmail(), user.isHasNewsLetterSubscription(), user.getLastFmAccountName());
     }
-    
+
     @PostMapping(path = "/editProfile")
-    public ResponseEntity editUserProfile(@Valid @RequestBody UserProfileEditDTO edit){
+    public ResponseEntity editUserProfile(@Valid @RequestBody UserProfileEditDTO edit) {
         userService.updateUserProfile(edit);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(path = "/api/resetPassword")
+    public ResponseEntity resetPassword(@RequestParam("username") String username) throws UserNotFoundException {
+        User user;
+        user = userService.findUserByName(username);
+        PasswordResetToken token = userService.createPasswordResetTokenForUser(user);
+        emailService.sendSimpleMessage(emailService.constructResetTokenEmail(token.getToken(), user));
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(path = "/api/changePassword")
+    public ResponseEntity changePassword(@RequestParam("id") int id, @RequestParam("token") String token) {
+        String result = userService.validatePasswordResetToken(id, token);
+        if (result != null) {
+            return ResponseEntity.ok(id);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+
+    @PostMapping(path = "/api/savePassword")
+    public ResponseEntity savePassword(@Valid PasswordDTO passwordDto) throws UserNotFoundException {
+        User user = userService.findUserById(passwordDto.getUserID());
+
+        userService.changeUserPassword(user, passwordDto.getPassword());
         return ResponseEntity.ok().build();
     }
 }
