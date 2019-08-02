@@ -223,7 +223,7 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public void updateUserProfile(UserProfileEditDTO edit) {
+    public User updateUserProfile(UserProfileEditDTO edit) {
         User user = getLoggedInUserForUpdate();
         if (!edit.getLastFmUsername().equals(user.getLastFmAccountName())) {
             user.getLikedArtists().removeIf(artist -> artist.isFromLastFm());
@@ -236,6 +236,7 @@ public class UserService implements UserDetailsService {
         if (null != edit.isHasNewsLetter()) {
             user.setHasNewsLetterSubscription(edit.isHasNewsLetter());
         }
+        return user;
     }
 
     public PasswordResetToken createPasswordResetTokenForUser(User user) {

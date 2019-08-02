@@ -77,8 +77,9 @@ public class UserController {
 
     @PostMapping(path = "/editProfile")
     public ResponseEntity editUserProfile(@Valid @RequestBody UserProfileEditDTO edit) {
-        userService.updateUserProfile(edit);
-        return ResponseEntity.ok().build();
+        User user = userService.updateUserProfile(edit);
+        return ResponseEntity.ok(new UserProfileResponseDTO(user.getUsername(), user.getEmail(),
+                user.isHasNewsLetterSubscription(), user.getLastFmAccountName()));
     }
 
     @PostMapping(path = "/api/resetPassword")
