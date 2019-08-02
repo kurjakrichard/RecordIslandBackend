@@ -90,10 +90,10 @@ public class UserController {
     }
 
     @GetMapping(path = "/api/changePassword")
-    public ResponseEntity changePassword(@RequestParam("id") int id, @RequestParam("token") String token) {
-        String result = userService.validatePasswordResetToken(id, token);
+    public ResponseEntity changePassword(@RequestBody Map<String,String> changePassword) {
+        String result = userService.validatePasswordResetToken(Integer.parseInt(changePassword.get("id")), changePassword.get("token"));
         if (result != null) {
-            return ResponseEntity.ok(id);
+            return ResponseEntity.ok(changePassword.get("id"));
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
